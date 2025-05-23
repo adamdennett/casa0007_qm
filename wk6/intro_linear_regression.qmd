@@ -1,20 +1,44 @@
 ---
 title: "Introduction to Linear Regression"
-author: "Adam Dennett"
-format: revealjs
+author: "Professor Adam Dennett - @adam_dennett"
+institute: Bartlett Centre for Advanced Spatial Analysis, University College London
+date: today
+format: 
+  revealjs:
+    theme: solarized
+    chalkboard: true
+    smaller: true
+    logo: images/University_College_London_logo.svg
+    transition: slide
+    transition-speed: fast
+    width: 1600
+    height: 900
+    footer: | 
+      <https://github.com/adamdennett/EPC_Data_Analysis> 
+date-format: long
 editor: visual
+slide-number: true
 ---
 
-## Quarto
+## About Me
 
-Quarto enables you to weave together content and executable code into a finished presentation. To learn more about Quarto presentations see <https://quarto.org/docs/presentations/>.
+-   Professor of Urban Analytics in the [Bartlett Centre for Advanced Spatial Analysis (CASA)](https://www.ucl.ac.uk/bartlett/casa/)
 
-## Bullets
+::: {#centre_text style="text-align: center; font-size: xxx-large"}
+[My Geographical history](https://earth.google.com/earth/d/1WL5cJxPVZtq7OIm1eWEb3KVHI8G3Ctiw?usp=sharing){target="_blank"}
+:::
 
-When you click the **Render** button a document will be generated that includes:
+## Columns
 
--   Content authored with markdown
--   Output from executable code
+::::: columns
+::: {.column width="50%"}
+![](images/casa_logo.jpg)
+:::
+
+::: {.column width="50%"}
+![](images/University_College_London_logo.svg)
+:::
+:::::
 
 ## Code
 
