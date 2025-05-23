@@ -47,3 +47,11 @@ When you click the **Render** button a presentation will be generated that inclu
 ```{r}
 1 + 1
 ```
+
+
+Desmos Links
+
+https://www.desmos.com/calculator/z4nzre9ka0
+https://www.desmos.com/calculator/gmzze6qf5e
+
+
