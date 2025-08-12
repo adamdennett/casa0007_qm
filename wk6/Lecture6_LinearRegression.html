@@ -124,6 +124,22 @@
       margin-right: 0; 
     }
   </style>
+  <script src="Lecture6_LinearRegression_files/libs/core-js-2.5.3/shim.min.js"></script>
+
+  <script src="Lecture6_LinearRegression_files/libs/react-18.2.0/react.min.js"></script>
+
+  <script src="Lecture6_LinearRegression_files/libs/react-18.2.0/react-dom.min.js"></script>
+
+  <script src="Lecture6_LinearRegression_files/libs/reactwidget-2.0.0/react-tools.js"></script>
+
+  <link href="Lecture6_LinearRegression_files/libs/htmltools-fill-0.5.8.1/fill.css" rel="stylesheet">
+
+  <script src="Lecture6_LinearRegression_files/libs/htmlwidgets-1.6.4/htmlwidgets.js"></script>
+
+  <link href="Lecture6_LinearRegression_files/libs/reactable-0.4.4/reactable.css" rel="stylesheet">
+
+  <script src="Lecture6_LinearRegression_files/libs/reactable-binding-0.4.4/reactable.js"></script>
+
 </head>
 <body class="quarto-light">
   <div class="reveal">
@@ -223,6 +239,37 @@
 <p>Learn more: <a href="https://quarto.org/docs/presentations/revealjs/#multiple-columns">Multiple Columns</a></p>
 </div>
 </section>
+<section id="step-1---data-and-understanding-it" class="slide level2">
+<h2>Step 1 - Data and Understanding it</h2>
+<div class="columns">
+<div class="column" style="width:60%;">
+<ul>
+<li>The UK Government collects LOTS of data on schools and pupils</li>
+<li>The data is collected by the Department for Education (DfE), published annually and is comprehensive - a full annual census of each school</li>
+<li>For each school, hundreds of variables relating to:
+<ul>
+<li>attainment and progress</li>
+<li>pupil characteristics</li>
+<li>school characteristics</li>
+</ul></li>
+</ul>
+<p>are available</p>
+</div><div class="column" style="width:40%;">
+<p><a href="images/gov_school_data.png" class="lightbox" data-gallery="quarto-lightbox-gallery-2"><img data-src="images/gov_school_data.png"></a></p>
+</div></div>
+<div class="footer">
+<p>DfE Data: <a href="https://www.compare-school-performance.service.gov.uk/compare-schools" class="uri">https://www.compare-school-performance.service.gov.uk/compare-schools</a></p>
+</div>
+</section>
+<section id="step-1---data-and-understanding-it-1" class="slide level2">
+<h2>Step 1 - Data and Understanding it</h2>
+<div class="cell">
+<div class="cell-output-display">
+<div class="reactable html-widget html-fill-item" id="htmlwidget-c53e11bf147e424b2af2" style="width:auto;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-c53e11bf147e424b2af2">{"x":{"tag":{"name":"Reactable","attribs":{"data":{"URN":["114606","136164","114611","114580","114607","139409","114581","114608","137063","114579"],"SCHNAME.x":["Blatchington Mill School","Brighton Aldridge Community Academy","Cardinal Newman Catholic School","Dorothy Stringer School","Hove Park School and Sixth Form Centre","King's School","Longhill High School","Patcham High School","Portslade Aldridge Community Academy","Varndean School"],"TOWN.x":["Hove","Brighton","Hove","Brighton","Hove","Hove","Brighton","Brighton","Brighton","Brighton"],"EGENDER":["MIXED","MIXED","MIXED","MIXED","MIXED","MIXED","MIXED","MIXED","MIXED","MIXED"],"TOTPUPS":[1621,838,2497,1640,1123,789,875,1118,953,1498],"ATT8SCR":[49.7,36.2,51.8,53.8,46.8,54.3,35.8,47.9,44.8,54.5],"OFSTEDRATING":["Good","Requires improvement","Good","Good","Good","Good","Requires improvement","Good","Good","Good"],"MINORGROUP":["Maintained school","Academy","Maintained school","Maintained school","Maintained school","Academy","Maintained school","Maintained school","Academy","Maintained school"],"PTFSM6CLA1A":[15,45,18,18,29,16,29,19,26,20]},"columns":[{"id":"URN","name":"URN","type":"character"},{"id":"SCHNAME.x","name":"SCHNAME.x","type":"character"},{"id":"TOWN.x","name":"TOWN.x","type":"character"},{"id":"EGENDER","name":"EGENDER","type":"character"},{"id":"TOTPUPS","name":"TOTPUPS","type":"numeric"},{"id":"ATT8SCR","name":"ATT8SCR","type":"numeric"},{"id":"OFSTEDRATING","name":"OFSTEDRATING","type":"character"},{"id":"MINORGROUP","name":"MINORGROUP","type":"character"},{"id":"PTFSM6CLA1A","name":"PTFSM6CLA1A","type":"numeric"}],"theme":{"color":"#0F0C11","borderColor":"#F6F5F6","stripedColor":"#DBD8DD80","highlightColor":"#E9E7EA","style":{"fontFamily":"Arial, Segoe UI, Helvetica, Arial, sans-serif","fontSize":"11pt"},"headerStyle":{"whiteSpace":"prewrap","wordWrap":"normal","fontFamily":"Hanken Grotesk, Segoe UI, Helvetica, Arial, sans-serif","fontSize":"11pt","borderColor":"#4e3c56","color":"#4e3c56","align":"center","&:hover[aria-sort]":{"borderTop":"1px solid #4E3C5680"},"&[aria-sort='ascending'], &[aria-sort='descending']":{"borderTop":"1px solid #4e3c56"},"borderColor.1":"#F6F5F6"},"footerStyle":{"fontFamily":"Arial, Segoe UI, Helvetica, Arial, sans-serif","fontWeight":"bold","color":"#2E2433"}},"dataKey":"4d74cb68ccaf90a3506f5ad40cefb6fc"},"children":[]},"class":"reactR_markup"},"evals":[],"jsHooks":[]}</script>
+</div>
+</div>
+</section>
 <section id="regression-fundamentals" class="slide level2" data-transition="convex-in none-out" data-transition-speed="fast">
 <h2>Regression Fundamentals</h2>
 <ul>
@@ -240,7 +287,7 @@
 <figure>
 <div class="quarto-figure quarto-figure-center">
 <figure>
-<p><a href="Lecture6_LinearRegression_files/figure-revealjs/attainment-8-histogram-1.png" class="lightbox" data-gallery="quarto-lightbox-gallery-2" title="Histogram of Attainment 8 Scores for all schools in England and Wales, 2022/23 Academic Year"><img data-src="Lecture6_LinearRegression_files/figure-revealjs/attainment-8-histogram-1.png" class="quarto-figure quarto-figure-center" width="768" alt="Histogram of Attainment 8 Scores for all schools in England and Wales, 2022/23 Academic Year"></a></p>
+<p><a href="Lecture6_LinearRegression_files/figure-revealjs/attainment-8-histogram-1.png" class="lightbox" data-gallery="quarto-lightbox-gallery-3" title="Histogram of Attainment 8 Scores for all schools in England and Wales, 2022/23 Academic Year"><img data-src="Lecture6_LinearRegression_files/figure-revealjs/attainment-8-histogram-1.png" class="quarto-figure quarto-figure-center" width="768" alt="Histogram of Attainment 8 Scores for all schools in England and Wales, 2022/23 Academic Year"></a></p>
 </figure>
 </div>
 <figcaption>Histogram of Attainment 8 Scores for all schools in England and Wales, 2022/23 Academic Year</figcaption>
@@ -254,7 +301,7 @@
 <figure>
 <div class="quarto-figure quarto-figure-center">
 <figure>
-<p><a href="Lecture6_LinearRegression_files/figure-revealjs/attainment-8-boxplot-1.png" class="lightbox" data-gallery="quarto-lightbox-gallery-3" title="Boxplot of Attainment 8 Scores with Jittered School-Level Points, 2022/23 Academic Year"><img data-src="Lecture6_LinearRegression_files/figure-revealjs/attainment-8-boxplot-1.png" class="quarto-figure quarto-figure-center" width="768" alt="Boxplot of Attainment 8 Scores with Jittered School-Level Points, 2022/23 Academic Year"></a></p>
+<p><a href="Lecture6_LinearRegression_files/figure-revealjs/attainment-8-boxplot-1.png" class="lightbox" data-gallery="quarto-lightbox-gallery-4" title="Boxplot of Attainment 8 Scores with Jittered School-Level Points, 2022/23 Academic Year"><img data-src="Lecture6_LinearRegression_files/figure-revealjs/attainment-8-boxplot-1.png" class="quarto-figure quarto-figure-center" width="768" alt="Boxplot of Attainment 8 Scores with Jittered School-Level Points, 2022/23 Academic Year"></a></p>
 </figure>
 </div>
 <figcaption>Boxplot of Attainment 8 Scores with Jittered School-Level Points, 2022/23 Academic Year</figcaption>
@@ -270,11 +317,11 @@
 <p><span class="math display">\[Y = \beta_0 + \beta_1X_1 + \beta_2X_2 + ... + \beta_nX_n + \epsilon\]</span></p>
 <p>where:</p>
 <ul>
-<li>(Y) is the dependent variable</li>
-<li>(X_1, X_2, …, X_n) are the independent variables</li>
-<li>(_0) is the intercept (constant term)</li>
-<li>(_1, _2, …, _n) are the coefficients for each independent variable</li>
-<li>() is the error term (residuals)</li>
+<li><span class="math inline">\(Y\)</span> is the dependent variable</li>
+<li><span class="math inline">\(X_1, X_2, ..., X_n\)</span> are the independent variables</li>
+<li><span class="math inline">\(\beta_0\)</span> is the intercept (constant term)</li>
+<li><span class="math inline">\(\beta_1, \beta_2, ..., \beta_n\)</span> are the coefficients for each independent variable</li>
+<li><span class="math inline">\(\epsilon\)</span> is the error term (residuals)</li>
 </ul></li>
 </ul>
 </section>
@@ -293,7 +340,7 @@ These half and half slides only really work with columns
 <div class="cell-output-display">
 <div>
 <figure>
-<p><a href="Lecture6_LinearRegression_files/figure-revealjs/unnamed-chunk-4-1.png" class="lightbox" data-gallery="quarto-lightbox-gallery-4"><img data-src="Lecture6_LinearRegression_files/figure-revealjs/unnamed-chunk-4-1.png" width="960"></a></p>
+<p><a href="Lecture6_LinearRegression_files/figure-revealjs/unnamed-chunk-5-1.png" class="lightbox" data-gallery="quarto-lightbox-gallery-5"><img data-src="Lecture6_LinearRegression_files/figure-revealjs/unnamed-chunk-5-1.png" width="960"></a></p>
 </figure>
 </div>
 </div>

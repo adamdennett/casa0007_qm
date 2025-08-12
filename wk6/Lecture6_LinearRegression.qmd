@@ -53,8 +53,6 @@ library(tibble)
 #all england schools
 edubase_schools <- read_csv("https://www.dropbox.com/scl/fi/fhzafgt27v30lmmuo084y/edubasealldata20241003.csv?rlkey=uorw43s44hnw5k9js3z0ksuuq&raw=1") %>% 
   clean_names() %>% 
-  filter(phase_of_education_name == "Secondary") %>% 
-  filter(establishment_status_name == "Open") %>% 
   mutate(urn = as.character(urn))
 
 england_abs <- read_csv(here("wk6", "data", "Performancetables_130242", "2022-2023", "england_abs.csv"), na = c("", "NA", "SUPP", "NP", "NE")) %>%
@@ -131,26 +129,35 @@ school_information_meta <- read_csv(here("wk6","data", "Performancetables_130249
 ```{r}
 
 # Custom join function to drop duplicate columns (except URN)
-safe_left_join <- function(x, y) {
-  common_cols <- intersect(names(x), names(y))
-  common_cols <- setdiff(common_cols, "URN")  # keep URN
-  y_clean <- y |> select(-all_of(common_cols))
-  left_join(x, y_clean, by = "URN")
-}
+# safe_left_join <- function(x, y) {
+#   common_cols <- intersect(names(x), names(y))
+#   common_cols <- setdiff(common_cols, "URN")  # keep URN
+#   y_clean <- y |> select(-all_of(common_cols))
+#   left_join(x, y_clean, by = "URN")
+# }
 
 # Perform sequential joins
-england_school_2022_23 <- england_school_information |>
-  safe_left_join(england_abs) |>
-  safe_left_join(england_census) |>
-  safe_left_join(england_ks4final) |>
-  safe_left_join(england_ks4_pupdest)
+# england_school_2022_23 <- safe_left_join(england_ks4final) |>
+#   safe_left_join(england_abs) |>
+#   safe_left_join(england_census) |>
+#   safe_left_join(england_ks4_pupdest) |>
+#   safe_left_join(england_school_information)
 
-#column_headers_df <- tibble(column_name = names(england_school_2022_23))
+# Left join england_ks4final with england_abs
+england_school_2022_23 <- england_ks4final %>%
+  left_join(england_abs, by = "URN") %>%
+  left_join(england_census, by = "URN") %>%
+  left_join(england_school_information, by = "URN")
 
 # Filter out special schools and those with ADMPOL (admissions policy) = "NSE" (non-selective)
 
+england_school_2022_23 <- england_school_2022_23 |>
+  left_join(edubase_schools, by = c("URN" = "urn"))
+
 england_school_2022_23_not_special <- england_school_2022_23 %>%
   filter(MINORGROUP != "Special school")
+
+#column_headers_df <- tibble(column_name = names(england_school_2022_23))
   
 ```
 
@@ -205,7 +212,7 @@ By the end of this session, we will understand:
 
 ## Secondary Schools, Attainment and Urban Policy {transition="convex-in none-out" transition-speed="fast"}
 
-:::::: columns
+::::: columns
 ::: {.column width="50%"}
 -   School performance and pupil attainment can be a big urban planning issue
 -   Perceived variations in quality and access can feed into broader socio-economic issues in cities
@@ -214,15 +221,50 @@ By the end of this session, we will understand:
 :::
 
 ::: {.column width="50%"}
-
 ![](images/BHCC_Engagement_PPT.png)
-
 :::
-::::::
+:::::
 
 ::: footer
 Learn more: [Multiple Columns](https://quarto.org/docs/presentations/revealjs/#multiple-columns)
 :::
+
+## Step 1 - Data and Understanding it
+
+::::: columns
+::: {.column width="60%"}
+-   The UK Government collects LOTS of data on schools and pupils
+-   The data is collected by the Department for Education (DfE), published annually and is comprehensive - a full annual census of each school
+-   For each school, hundreds of variables relating to:
+    -   attainment and progress
+    -   pupil characteristics
+    -   school characteristics
+
+are available
+:::
+
+::: {.column width="40%"}
+![](images/gov_school_data.png)
+:::
+:::::
+
+::: footer
+DfE Data: <https://www.compare-school-performance.service.gov.uk/compare-schools>
+:::
+
+## Step 1 - Data and Understanding it
+
+```{r}
+library(reactable)
+library(casaviz)  # assuming casa_reactable_theme is defined here
+
+england_school_2022_23 %>% 
+  filter(LANAME == "Brighton and Hove") %>% 
+  filter(phase_of_education_name == "Secondary") %>% 
+  filter(establishment_status_name == "Open") %>% 
+  select(URN, SCHNAME.x, TOWN.x, EGENDER, TOTPUPS, ATT8SCR, OFSTEDRATING, MINORGROUP, PTFSM6CLA1A) |>
+  reactable(theme = casa_reactable_theme(colour = "purple"))
+```
 
 ## Regression Fundamentals {transition="convex-in none-out" transition-speed="fast"}
 
@@ -279,11 +321,11 @@ ggplot(england_school_2022_23, aes(x = "", y = ATT8SCR)) +
 
     where:
 
-    -   \(Y\) is the dependent variable
-    -   (X_1, X_2, ..., X_n) are the independent variables
-    -   (\beta\_0) is the intercept (constant term)
-    -   (\beta\_1, \beta\_2, ..., \beta\_n) are the coefficients for each independent variable
-    -   (\epsilon) is the error term (residuals)
+    -   $Y$ is the dependent variable
+    -   $X_1, X_2, ..., X_n$ are the independent variables
+    -   $\beta_0$ is the intercept (constant term)
+    -   $\beta_1, \beta_2, ..., \beta_n$ are the coefficients for each independent variable
+    -   $\epsilon$ is the error term (residuals)
 
 ##  {.half-and-half}
 
