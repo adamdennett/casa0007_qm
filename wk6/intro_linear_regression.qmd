@@ -1,24 +1,36 @@
 ---
 title: "Introduction to Linear Regression"
-author: "Professor Adam Dennett - @adam_dennett"
-institute: Bartlett Centre for Advanced Spatial Analysis, University College London
-date: today
-format: 
-  revealjs:
-    theme: solarized
-    chalkboard: true
-    smaller: true
-    logo: images/University_College_London_logo.svg
-    transition: slide
-    transition-speed: fast
-    width: 1600
-    height: 900
-    footer: | 
-      <https://github.com/adamdennett/EPC_Data_Analysis> 
-date-format: long
-editor: visual
-slide-number: true
+subtitle: "The Big Daddy of All Models"
+author: 
+  - name: "Adam Dennett"
+email: "a.dennett@ucl.ac.uk"
+date-as-string: "1st August 2024"
+other: "Any other information"
+from: markdown+emoji
+format:
+  revealjs: 
+    logo: "images/CASA_logo.svg"
+    template-partials: 
+      - title-slide.html
+    transition: none
+    slide-number: false
+    preview-links: auto
+    theme: casa-slides.scss
+    footer: "&copy; CASA &nbsp; | &nbsp; [ucl.ac.uk/bartlett/casa](https://www.ucl.ac.uk/bartlett/casa)"
+filters:
+ - code-visibility
+lightbox: auto
+title-slide-attributes:
+    data-background-image: "images/title-slide.png"
+    data-background-size: stretch
+    data-background-opacity: "0.08"
+    data-background-color: "#4e3c56"
 ---
+
+```{r}
+library(casaviz)
+```
+
 
 ## About Me
 
@@ -48,10 +60,6 @@ When you click the **Render** button a presentation will be generated that inclu
 1 + 1
 ```
 
-
 Desmos Links
 
-https://www.desmos.com/calculator/z4nzre9ka0
-https://www.desmos.com/calculator/gmzze6qf5e
-
-
+https://www.desmos.com/calculator/z4nzre9ka0 https://www.desmos.com/calculator/gmzze6qf5e

@@ -4,3 +4,6 @@
 .Ruserdata
 data/
 images/
+casa-slides*
+casa_slides_demo*
+AD_Header.qmd

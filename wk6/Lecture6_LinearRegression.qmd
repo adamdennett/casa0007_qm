@@ -1,0 +1,344 @@
+---
+title: "Introduction to Applied Linear Regression"
+subtitle: "One model to rule them all!"
+author: 
+  - name: "Adam Dennett"
+email: "a.dennett@ucl.ac.uk"
+date-as-string: "1st August 2024"
+other: "CASA0007 Quantitative Methods"
+from: markdown+emoji
+format:
+  revealjs: 
+    logo: "images/CASA_logo.svg"
+    template-partials: 
+      - title-slide.html
+    transition: none
+    slide-number: false
+    preview-links: auto
+    theme: casa-slides.scss
+    footer: "&copy; CASA &nbsp; | &nbsp; [ucl.ac.uk/bartlett/casa](https://www.ucl.ac.uk/bartlett/casa)"
+filters:
+ - code-visibility
+lightbox: auto
+title-slide-attributes:
+    data-background-image: "images/title-slide.png"
+    data-background-size: stretch
+    data-background-opacity: "0.08"
+    data-background-color: "#4e3c56"
+---
+
+```{r}
+#| label: load-data
+#| message: false
+#| warning: false
+#| include: false
+
+##before we do anything else, let's load the packages we need and the data we require
+
+library(casaviz)
+library(tidyverse)
+library(sf)
+library(plotly)
+library(leaflet)
+library(rgl)
+library(dplyr)
+library(here)
+library(stringr)
+library(dplyr)
+library(purrr)
+library(janitor)
+library(readxl)
+library(tibble)
+
+#all england schools
+edubase_schools <- read_csv("https://www.dropbox.com/scl/fi/fhzafgt27v30lmmuo084y/edubasealldata20241003.csv?rlkey=uorw43s44hnw5k9js3z0ksuuq&raw=1") %>% 
+  clean_names() %>% 
+  filter(phase_of_education_name == "Secondary") %>% 
+  filter(establishment_status_name == "Open") %>% 
+  mutate(urn = as.character(urn))
+
+england_abs <- read_csv(here("wk6", "data", "Performancetables_130242", "2022-2023", "england_abs.csv"), na = c("", "NA", "SUPP", "NP", "NE")) %>%
+  mutate(URN = as.character(URN))
+england_census <- read_csv(here("wk6", "data", "Performancetables_130242", "2022-2023", "england_census.csv"), na = c("", "NA", "SUPP", "NP", "NE")) %>%
+  mutate(URN = as.character(URN)) %>%
+  mutate(across(5:23, ~ parse_number(as.character(.))))
+england_ks4_mats_performance <- read_csv(
+  here("wk6", "data", "Performancetables_130242", "2022-2023", "england_ks4-mats-performance.csv"),
+  na = c("", "NA", "SUPPMAT", "NP", "NE")
+) %>%
+  mutate(
+    TRUST_UID = as.character(TRUST_UID),
+    P8_BANDING = as.character(P8_BANDING),
+    INSTITUTIONS_INMAT = as.character(INSTITUTIONS_INMAT)
+  ) %>%
+  mutate(across(
+    .cols = names(.)[11:ncol(.)][!names(.)[11:ncol(.)] %in% c("P8_BANDING", "INSTITUTIONS_INMAT")],
+    .fns = ~ parse_number(as.character(.))
+  ))
+
+england_ks4_pupdest <- read_csv(here("wk6", "data", "Performancetables_130242", "2022-2023", "england_ks4-pupdest.csv"), na = c("", "NA", "SUPP", "NP", "NE", "SP", "SN")) %>%
+  mutate(URN = as.character(URN)) %>%
+  mutate(across(8:82, ~ parse_number(as.character(.))))
+
+england_ks4final <- read_csv(here("wk6", "data", "Performancetables_130242", "2022-2023", "england_ks4final.csv"), na = c("", "NA", "SUPP", "NP", "NE", "SP", "LOWCOV", "NEW")) %>%
+  mutate(URN = as.character(URN)) %>%
+  mutate(across(TOTPUPS:PTOTENT_E_COVID_IMPACTED_PTQ_EE, ~ parse_number(as.character(.))))
+
+england_school_information <- read_csv(
+  here("wk6", "data", "Performancetables_130242", "2022-2023", "england_school_information.csv"),
+  na = c("", "NA", "SUPP", "NP", "NE", "SP"),
+  col_types = cols(
+    URN = col_character(),
+    OFSTEDLASTINSP = col_date(format = "%d-%m-%Y")  # Adjust format if needed
+  )
+)
+
+
+abs_meta <- read_csv(here("wk6","data", "Performancetables_130249", "2022-2023", "abs_meta.csv"), na = c("", "NA", "SUPP", "NP", "NE")) %>% 
+  clean_names()
+census_meta <- read_csv(here("wk6","data", "Performancetables_130249", "2022-2023", "census_meta.csv"), na = c("", "NA", "SUPP", "NP", "NE")) %>% 
+  clean_names()
+ks4_mats_performance_meta <- read_csv(here("wk6","data", "Performancetables_130249", "2022-2023", "ks4-mats-performance_meta.csv"), na = c("", "NA", "SUPP", "NP", "NE")) %>% 
+  clean_names()
+ks4_pupdest_meta <- read_csv(here("wk6","data", "Performancetables_130249", "2022-2023", "ks4-pupdest_meta.csv"), na = c("", "NA", "SUPP", "NP", "NE")) %>% 
+  clean_names()
+ks4final_meta <- read_xlsx(here("wk6","data", "Performancetables_130249", "2022-2023", "ks4_meta.xlsx"), na = c("", "NA", "SUPP", "NP", "NE")) %>% 
+  clean_names()
+school_information_meta <- read_csv(here("wk6","data", "Performancetables_130249", "2022-2023", "la_and_region_codes_meta.csv"), na = c("", "NA", "SUPP", "NP", "NE")) %>% 
+  clean_names()
+la_and_region_codes_meta <- read_csv(here("wk6","data", "Performancetables_130249", "2022-2023", "la_and_region_codes_meta.csv"), na = c("", "NA", "SUPP", "NP", "NE")) %>% 
+  clean_names()
+school_information_meta <- read_csv(here("wk6","data", "Performancetables_130249", "2022-2023", "school_information_meta.csv"), na = c("", "NA", "SUPP", "NP", "NE")) %>% 
+  clean_names()
+
+# str(england_abs)
+# str(england_census)
+# str(england_ks4_mats_performance)
+# str(england_ks4_pupdest)
+# str(england_ks4final)
+# str(england_school_information)
+# str(abs_meta)
+# str(census_meta)
+# str(ks4_mats_performance_meta)
+# str(ks4_pupdest_meta)
+# str(ks4final_meta)
+# str(school_information_meta)
+# str(la_and_region_codes_meta)
+
+
+```
+
+```{r}
+
+# Custom join function to drop duplicate columns (except URN)
+safe_left_join <- function(x, y) {
+  common_cols <- intersect(names(x), names(y))
+  common_cols <- setdiff(common_cols, "URN")  # keep URN
+  y_clean <- y |> select(-all_of(common_cols))
+  left_join(x, y_clean, by = "URN")
+}
+
+# Perform sequential joins
+england_school_2022_23 <- england_school_information |>
+  safe_left_join(england_abs) |>
+  safe_left_join(england_census) |>
+  safe_left_join(england_ks4final) |>
+  safe_left_join(england_ks4_pupdest)
+
+#column_headers_df <- tibble(column_name = names(england_school_2022_23))
+
+# Filter out special schools and those with ADMPOL (admissions policy) = "NSE" (non-selective)
+
+england_school_2022_23_not_special <- england_school_2022_23 %>%
+  filter(MINORGROUP != "Special school")
+  
+```
+
+## This week's Session {transition="convex-in none-out" transition-speed="fast"}
+
+```{r, echo=FALSE}
+# This makes the fonts play nicely within the figures
+knitr::opts_chunk$set(dev = "ragg_png")
+
+```
+
+```{css}
+/* This sits here, because it allows us to use images from within the images/ folder. Otherwise, the file structure gets a lot more involved! */
+.reveal::after {
+  background-image: url('images/light-background.png');
+}
+```
+
+By the end of this session, we will understand:
+
+-   linear Regression and why it is perhaps *THE* most useful tool in your statistical toolbox - but only if used correctly
+-   how correct use depends mainly on:
+    -   understanding the features of your data - sample size, the variables and groups within your data, multicolinearity, heteroscedascity, kurtosis, variance, degrees of freedom, interaction effects (and what all of these words mean!)
+    -   how a model and the variables you put into that model should always be informed by a sound theoretical understanding
+
+## This week's Session {transition="convex-in none-out" transition-speed="fast"}
+
+-   the fundamental importance of visualising your model and how the model outputs from statistical software are just a shorthand for your visualisation
+-   how poor urban policy can be based a misunderstanding of regression models, but how it can also underpin better policy
+
+# Our Case Study - Factors Affecting School-Level Educational Attainment and England and Wales, 2022-23 {background-image="https://adamdennett.github.io/BH_Schools_Consultation/attainment_extra_files/figure-html/unnamed-chunk-10-1.png" background="#2e6260" background-opacity="0.1"}
+
+## Secondary Schools and Attainment - GCSEs {transition="convex-in none-out" transition-speed="fast"}
+
+-   Secondary Schools mainly teach children between the ages of 11-16 in England and Wales (some 11-18, some 13-18)
+-   The examinations most children take at the end of Year 11 (age 16) are called GCSEs (General Certificate of Secondary Education)
+-   The GCSEs are graded from 9 (highest) to 1 (lowest), with a grade of 4 considered a "standard pass" and a grade of 5 considered a "strong pass"
+
+## Secondary Schools and Attainment - Attainment 8 {transition="convex-in none-out" transition-speed="fast"}
+
+-   Attainment 8 is a measure that sums the grades for each pupil across 8 GCSEs (the standard number taken).
+    -   Maths is always counted twice and English often counted twice where both language and literature are taken.
+    -   Thus a maximum Attainment 8 score of 90 can be achieved
+-   The Attainment 8 scores for all year 11 students can be averaged for each school giving a school-level Attainment 8 Score
+-   Attainment 8 is a raw score and doesn't account for important variations in the cohorts of students each school admits or the types of school, so direct comparison between schools without accounting for these factors is risky
+
+## Secondary Schools and Attainment - Progress 8 {transition="convex-in none-out" transition-speed="fast"}
+
+-   Progress 8 is an alternative attainment score which looks at the progress a student makes between arriving at a school in year 7 or 9 and leaving at age 16
+-   It compares their levels of attainment at entry and exit with the progress made by similar students nationally
+-   Progress 8 is a 'value-added' ratio. A score of zero means students, on average, made expected progress, while a positive score means they made more progress than expected, and a negative score means they made less
+
+## Secondary Schools, Attainment and Urban Policy {transition="convex-in none-out" transition-speed="fast"}
+
+:::::: columns
+::: {.column width="50%"}
+-   School performance and pupil attainment can be a big urban planning issue
+-   Perceived variations in quality and access can feed into broader socio-economic issues in cities
+-   In the UK, schools are the responsibility of local government
+-   Understanding the drivers behind pupil attainment and school performance vital for good policy
+:::
+
+::: {.column width="50%"}
+
+![](images/BHCC_Engagement_PPT.png)
+
+:::
+::::::
+
+::: footer
+Learn more: [Multiple Columns](https://quarto.org/docs/presentations/revealjs/#multiple-columns)
+:::
+
+## Regression Fundamentals {transition="convex-in none-out" transition-speed="fast"}
+
+-   Regression is a statistical method used to understand the relationship between one or more independent variables (predictors) and a dependent variable (outcome)
+-   Even more simply the dependent variable is the thing you want to predict, and the independent variables are the things you think might influence that prediction
+-   The simplest form is **linear regression**, which assumes a linear relationship between the independent and dependent variables
+-   In a simple linear regression the dependent variable is measured on a continuous scale - in our case this might the average Attainment 8 scores for all schools in England and Wales
+
+## Attainment 8 Scores in England and Wales {transition="convex-in none-out" transition-speed="fast"}
+
+```{r}
+#| label: attainment-8-histogram
+#| fig.width: 8
+#| fig.height: 5
+#| fig.cap: "Histogram of Attainment 8 Scores for all schools in England and Wales, 2022/23 Academic Year"
+#| fig.align: "center"
+
+median_value <- median(england_school_2022_23$ATT8SCR, na.rm = TRUE)
+
+ggplot(england_school_2022_23, aes(x = ATT8SCR)) +
+  geom_histogram(binwidth = 1, fill = "grey", alpha = 0.4) +  # New color for the bars with added transparency
+  geom_vline(xintercept = median_value, color = "black", linetype = "dotted", size = 1) +
+  labs(title = "Attainment 8 - All Schools 2022/23 Academic Year",
+       x = "Attainment 8 Score",
+       y = "Count")
+
+```
+
+```{r}
+#| label: attainment-8-boxplot
+#| fig.width: 8
+#| fig.height: 5
+#| fig.cap: "Boxplot of Attainment 8 Scores with Jittered School-Level Points, 2022/23 Academic Year"
+#| fig.align: "center"
+
+library(ggplot2)
+
+median_value <- median(england_school_2022_23$ATT8SCR, na.rm = TRUE)
+
+ggplot(england_school_2022_23, aes(x = "", y = ATT8SCR)) +
+  geom_boxplot(fill = "lightblue", alpha = 0.6, outlier.shape = NA) +  # Suppress default outliers
+  geom_jitter(width = 0.2, alpha = 0.4, color = "darkblue", size = 1) +  # Jittered points
+  geom_hline(yintercept = median_value, color = "black", linetype = "dotted", size = 1) +
+  labs(title = "Attainment 8 - All Schools 2022/23 Academic Year",
+       x = "",
+       y = "Attainment 8 Score")
+```
+
+## Regression Maths
+
+-   The general form of a linear regression model is:
+
+    $$Y = \beta_0 + \beta_1X_1 + \beta_2X_2 + ... + \beta_nX_n + \epsilon$$
+
+    where:
+
+    -   \(Y\) is the dependent variable
+    -   (X_1, X_2, ..., X_n) are the independent variables
+    -   (\beta\_0) is the intercept (constant term)
+    -   (\beta\_1, \beta\_2, ..., \beta\_n) are the coefficients for each independent variable
+    -   (\epsilon) is the error term (residuals)
+
+##  {.half-and-half}
+
+:::::: columns
+::: {.column width="45%"}
+<h2>These half and half slides only really work with columns</h2>
+
+This slide shows you how to do that.
+:::
+
+::: {.column width="10%"}
+:::
+
+::: {.column width="45%"}
+```{r}
+# Create the histogram with vertical lines using the Set3 palette
+median_value <- median(england_school_2022_23$ATT8SCR, na.rm = TRUE)
+
+ggplot(england_school_2022_23, aes(x = ATT8SCR)) +
+  geom_histogram(binwidth = 1, fill = "grey", alpha = 0.4) +  # New color for the bars with added transparency
+  geom_vline(xintercept = median_value, color = "black", linetype = "dotted", size = 1) +
+  labs(title = "Attainment 8 - All Schools 2022/23 Academic Year",
+       x = "Attainment 8 Score",
+       y = "Count")
+```
+:::
+::::::
+
+::: footer
+:::
+
+## Media Backgrounds with brand colour {background="#4e3c56" background-image="https://www.ucl.ac.uk/bartlett/sites/bartlett/files/styles/department_hero_laptop/public/dirk_krolikowski_spatial_tectonic_0.jpg.webp?itok=LchrWxlf" background-opacity="0.1"}
+
+You can use the following as a slide background:
+
+-   An image: `background-image`
+-   A video: `background-video`
+-   An iframe: `background-iframe`
+
+Setting a dark background colour automatically changes the text formatting to "dark mode".
+
+::: footer
+Learn more: [Media Backgrounds](https://quarto.org/docs/presentations/revealjs/#image-backgrounds)
+:::
+
+## Thank you {background-image="images/title-slide.png" background-color="#0F0C11" background-opacity="0.2"}
+
+::::: columns
+::: column
+That's it. Happy presenting!
+
+For more tips on making the most of Quarto, use `casaviz::create_slides("my-file-name", demo = TRUE)`.
+:::
+
+::: column
+<center><img src="images/CASA_logo.svg" style="filter: drop-shadow(0px 0px 1px #F6F5F6);"/></center>
+:::
+:::::
