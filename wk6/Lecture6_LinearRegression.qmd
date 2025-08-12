@@ -266,6 +266,65 @@ england_school_2022_23 %>%
   reactable(theme = casa_reactable_theme(colour = "purple"))
 ```
 
+## Map
+
+```{r}
+library(dplyr)
+
+filtered_df <- england_school_2022_23 %>%
+  filter(LANAME == "Brighton and Hove",
+         phase_of_education_name == "Secondary",
+         establishment_status_name == "Open") %>%
+  select(URN, SCHNAME.x, TOWN.x, EGENDER, TOTPUPS, ATT8SCR, OFSTEDRATING, MINORGROUP, PTFSM6CLA1A, easting, northing)
+
+library(sf)
+
+# Convert to sf object with EPSG:27700
+sf_df <- st_as_sf(filtered_df, coords = c("easting", "northing"), crs = 27700)
+
+# Transform to EPSG:4326
+sf_df <- st_transform(sf_df, crs = 4326)
+
+# Extract lat/lon for leaflet
+sf_df <- sf_df %>%
+  mutate(
+    lon = st_coordinates(.)[,1],
+    lat = st_coordinates(.)[,2]
+  )
+
+library(leaflet)
+library(scales)
+
+# Define size and color scales
+size_scale <- rescale(sf_df$TOTPUPS, to = c(4, 12))  # radius from 4 to 12
+# Create custom color palette
+casa_palette <- casa_palettes$default
+color_scale <- colorNumeric(palette = casa_palette, domain = sf_df$TOTPUPS)
+
+
+leaflet(sf_df) |>
+  addProviderTiles("CartoDB.Positron") |>  # plain, minimal basemap
+  addCircleMarkers(
+    lng = ~lon,
+    lat = ~lat,
+    radius = size_scale,
+    color = ~color_scale(TOTPUPS),
+    stroke = FALSE,
+    fillOpacity = 0.8,
+    popup = ~paste0(
+      "<strong>", SCHNAME.x, "</strong><br>",
+      "Pupils: ", TOTPUPS
+    )
+  ) |> 
+  addLegend(
+    "bottomright",
+    pal = color_scale,
+    values = ~TOTPUPS,
+    title = "Total Pupils",
+    opacity = 0.7
+  )
+```
+
 ## Regression Fundamentals {transition="convex-in none-out" transition-speed="fast"}
 
 -   Regression is a statistical method used to understand the relationship between one or more independent variables (predictors) and a dependent variable (outcome)
