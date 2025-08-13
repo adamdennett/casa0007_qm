@@ -185,10 +185,12 @@ By the end of this session, we will understand:
 
 ## This week's Session {transition="convex-in none-out" transition-speed="fast"}
 
--   the fundamental importance of visualising your model and how the model outputs from statistical software are just a shorthand for your visualisation
--   how poor urban policy can be based a misunderstanding of regression models, but how it can also underpin better policy
+-   a fool-proof recipe for any future modelling exercise you undertake, including:
+    -   the fundamental importance of visualising your data and the relationships you are trying to fit a model to
+    -   how to interpret the outputs from your model and how they relate back to the visual patterns you observe and the rules that govern the model
+-   an example of how poor urban policy can be based a misunderstanding of data, models and local context, but how the same models, if used correctly, can also underpin better policy
 
-# Our Case Study - Factors Affecting School-Level Educational Attainment and England and Wales, 2022-23 {background-image="https://adamdennett.github.io/BH_Schools_Consultation/attainment_extra_files/figure-html/unnamed-chunk-10-1.png" background="#2e6260" background-opacity="0.1"}
+# Our Case Study - What are the Factors Affecting School-Level Educational Attainment in Brighton and Hove? {background-image="https://adamdennett.github.io/BH_Schools_Consultation/attainment_extra_files/figure-html/unnamed-chunk-10-1.png" background="#2e6260" background-opacity="0.1"}
 
 ## Secondary Schools and Attainment - GCSEs {transition="convex-in none-out" transition-speed="fast"}
 
@@ -201,7 +203,8 @@ By the end of this session, we will understand:
 -   Attainment 8 is a measure that sums the grades for each pupil across 8 GCSEs (the standard number taken).
     -   Maths is always counted twice and English often counted twice where both language and literature are taken.
     -   Thus a maximum Attainment 8 score of 90 can be achieved
--   The Attainment 8 scores for all year 11 students can be averaged for each school giving a school-level Attainment 8 Score
+    -   40 = Standard Pass, 50 = Strong Pass
+-   The Attainment 8 scores for all year 11 students can be averaged for each school giving a school-level average Attainment 8 Score
 -   Attainment 8 is a raw score and doesn't account for important variations in the cohorts of students each school admits or the types of school, so direct comparison between schools without accounting for these factors is risky
 
 ## Secondary Schools and Attainment - Progress 8 {transition="convex-in none-out" transition-speed="fast"}
@@ -213,34 +216,91 @@ By the end of this session, we will understand:
 ## Secondary Schools, Attainment and Urban Policy {transition="convex-in none-out" transition-speed="fast"}
 
 ::::: columns
-::: {.column width="50%"}
--   School performance and pupil attainment can be a big urban planning issue
--   Perceived variations in quality and access can feed into broader socio-economic issues in cities
+::: {.column width="60%"}
+-   School performance and pupil attainment can be a big urban policy issue - particularly where variations in access and perceived quality occur
+-   These variations feed into broader socio-economic issues in cities
 -   In the UK, schools are the responsibility of local government
--   Understanding the drivers behind pupil attainment and school performance vital for good policy
+-   Understanding the drivers behind pupil attainment and school performance vital for effective resource allocation and good local policy
 :::
 
-::: {.column width="50%"}
+::: {.column width="40%"}
 ![](images/BHCC_Engagement_PPT.png)
 :::
 :::::
 
 ::: footer
-Learn more: [Multiple Columns](https://quarto.org/docs/presentations/revealjs/#multiple-columns)
 :::
 
-## Step 1 - Data and Understanding it
+## Secondary Schools, Attainment and Urban Policy {transition="convex-in none-out" transition-speed="fast"}
+
+::::: columns
+::: {.column width="60%"}
+-   In 2024, Brighton and Hove Council convinced that the biggest driver of pupil attainment within schools was social mixing
+-   The 'disadvantage attainment gap' - socio-economically disadvantaged students tend to perform worse than their more affluent peers
+-   Belief based, primarily, on work of Professor Stephen Gorard, University of Durham
+-   Solution: create more socially mixed schools through a new controversial admissions policy
+:::
+
+::: {.column width="40%"}
+![](images/gorard_conversation.png)
+:::
+:::::
+
+::: footer
+The Conversation: <https://theconversation.com/poorer-pupils-do-worse-at-school-heres-how-to-reduce-the-attainment-gap-205535>
+:::
+
+## Reserarch Question(s) {transition="convex-in none-out" transition-speed="fast"}
+
+-   What are the factors that affect school-level educational attainment in Brighton and Hove?
+-   To what extent is attainment driven by social mixing?
+-   Are there any other factors that are relevant?
+-   What are the implications of this for local policy?
+-   Can regression help us and How can we go about carefully building a regression model to help us answer these questions?
+
+# A Reliable Regression Modelling Recipe {background-image="https://adamdennett.github.io/BH_Schools_Consultation/attainment_extra_files/figure-html/unnamed-chunk-10-1.png" background="#2e6260" background-opacity="0.1"}
+
+## Recipe / Framework {transition="convex-in none-out" transition-speed="fast"}
+
+::::: columns
+::: {.column width="60%"}
+-   One way to think about regression modelling is as a recipe. 
+-   The recipe has a number of steps, each of which is important to the final outcome
+-   As with baking a cake, failure failure will follow if you don't:
+   -   get your ingredients right
+   -   follow the method correctly 
+   -   use your tools in the right way
+:::
+
+::: {.column width="40%"}
+![](https://gu-witness.s3.amazonaws.com/media/31ab0d58-3f7a-44d0-842e-adfcf80f1d8c-mediumoriginalaspectdouble.jpg)
+:::
+:::::
+
+::: footer
+:::
+
+## Step 1a - Ingredients {transition="convex-in none-out" transition-speed="fast"}
+
+-   The exploratory data analysis (EDA) phase is the most important part of any modelling exercise (see Weeks 1 & 2 of this course)
+-   The EDA phase is where you get to know your data (ingredients) - the variables, data types, distributions, any spatial or temporal patterns
+-   Failure to get to know your data properly means you might misspecify your model by:
+    -   using the wrong explanatory variables or omitting some key ones
+    -   misunderstanding your data types - counts vs continuous
+    -   misunderstanding the relationships between your variables (linear vs logarithmic)
+    -   not accounting for important spatial or temporal patterns that might mean your observations are not independent
+
+## Step 1a - Ingredients
 
 ::::: columns
 ::: {.column width="60%"}
 -   The UK Government collects LOTS of data on schools and pupils
 -   The data is collected by the Department for Education (DfE), published annually and is comprehensive - a full annual census of each school
--   For each school, hundreds of variables relating to:
+-   For each school, hundreds of variables are available relating to:
     -   attainment and progress
     -   pupil characteristics
     -   school characteristics
 
-are available
 :::
 
 ::: {.column width="40%"}
@@ -252,7 +312,7 @@ are available
 DfE Data: <https://www.compare-school-performance.service.gov.uk/compare-schools>
 :::
 
-## Step 1 - Data and Understanding it
+## Step 1a - Ingredients
 
 ```{r}
 library(reactable)
@@ -262,11 +322,11 @@ england_school_2022_23 %>%
   filter(LANAME == "Brighton and Hove") %>% 
   filter(phase_of_education_name == "Secondary") %>% 
   filter(establishment_status_name == "Open") %>% 
-  select(URN, SCHNAME.x, TOWN.x, EGENDER, TOTPUPS, ATT8SCR, OFSTEDRATING, MINORGROUP, PTFSM6CLA1A) |>
+  select(URN, SCHNAME.x, TOWN.x, TOTPUPS, ATT8SCR, OFSTEDRATING, MINORGROUP, PTFSM6CLA1A) |>
   reactable(theme = casa_reactable_theme(colour = "purple"))
 ```
 
-## Map
+## Step 1b - Ingredient Familiarisation {transition="convex-in none-out" transition-speed="fast"}
 
 ```{r}
 library(dplyr)
@@ -275,7 +335,7 @@ filtered_df <- england_school_2022_23 %>%
   filter(LANAME == "Brighton and Hove",
          phase_of_education_name == "Secondary",
          establishment_status_name == "Open") %>%
-  select(URN, SCHNAME.x, TOWN.x, EGENDER, TOTPUPS, ATT8SCR, OFSTEDRATING, MINORGROUP, PTFSM6CLA1A, easting, northing)
+  select(URN, SCHNAME.x, TOWN.x, TOTPUPS, ATT8SCR, OFSTEDRATING, MINORGROUP, PTFSM6CLA1A, easting, northing)
 
 library(sf)
 
@@ -325,14 +385,9 @@ leaflet(sf_df) |>
   )
 ```
 
-## Regression Fundamentals {transition="convex-in none-out" transition-speed="fast"}
 
--   Regression is a statistical method used to understand the relationship between one or more independent variables (predictors) and a dependent variable (outcome)
--   Even more simply the dependent variable is the thing you want to predict, and the independent variables are the things you think might influence that prediction
--   The simplest form is **linear regression**, which assumes a linear relationship between the independent and dependent variables
--   In a simple linear regression the dependent variable is measured on a continuous scale - in our case this might the average Attainment 8 scores for all schools in England and Wales
 
-## Attainment 8 Scores in England and Wales {transition="convex-in none-out" transition-speed="fast"}
+## Step 1b - Ingredient Familiarisation {transition="convex-in none-out" transition-speed="fast"}
 
 ```{r}
 #| label: attainment-8-histogram
@@ -371,6 +426,13 @@ ggplot(england_school_2022_23, aes(x = "", y = ATT8SCR)) +
        x = "",
        y = "Attainment 8 Score")
 ```
+
+## Regression Fundamentals {transition="convex-in none-out" transition-speed="fast"}
+
+-   Regression is a statistical method used to understand the relationship between one or more independent variables (predictors) and a dependent variable (outcome)
+-   Even more simply the dependent variable is the thing you want to predict, and the independent variables are the things you think might influence that prediction
+-   The simplest form is **linear regression**, which assumes a linear relationship between the independent and dependent variables
+-   In a simple linear regression the dependent variable is measured on a continuous scale - in our case this might the average Attainment 8 scores for all schools in England and Wales
 
 ## Regression Maths
 
