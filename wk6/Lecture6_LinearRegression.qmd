@@ -256,7 +256,7 @@ The Conversation: <https://theconversation.com/poorer-pupils-do-worse-at-school-
 -   To what extent is attainment driven by social mixing?
 -   Are there any other factors that are relevant?
 -   What are the implications of this for local policy?
--   Can regression help us and How can we go about carefully building a regression model to help us answer these questions?
+-   Can regression help us and, if it can, how can we go about carefully building a regression model to help us answer these questions?
 
 # A Reliable Regression Modelling Recipe {background-image="https://adamdennett.github.io/BH_Schools_Consultation/attainment_extra_files/figure-html/unnamed-chunk-10-1.png" background="#2e6260" background-opacity="0.1"}
 
@@ -266,10 +266,11 @@ The Conversation: <https://theconversation.com/poorer-pupils-do-worse-at-school-
 ::: {.column width="60%"}
 -   One way to think about regression modelling is as a recipe. 
 -   The recipe has a number of steps, each of which is important to the final outcome
--   As with baking a cake, failure failure will follow if you don't:
-   -   get your ingredients right
-   -   follow the method correctly 
-   -   use your tools in the right way
+-   As with baking a cake, failure will follow if you don't:
+    -    get your ingredients right
+    -    follow the method correctly 
+    -    use your equipment in the right way
+-   You may need to iterate around these a few times during the process
 :::
 
 ::: {.column width="40%"}
@@ -280,26 +281,26 @@ The Conversation: <https://theconversation.com/poorer-pupils-do-worse-at-school-
 ::: footer
 :::
 
-## Step 1a - Ingredients {transition="convex-in none-out" transition-speed="fast"}
+## Step 1 - Ingredients {transition="convex-in none-out" transition-speed="fast"}
 
--   The exploratory data analysis (EDA) phase is the most important part of any modelling exercise (see Weeks 1 & 2 of this course)
+-   The Exploratory Data Analysis (EDA) phase is the most important part of any modelling exercise (see Weeks 1 & 2 of this course)
 -   The EDA phase is where you get to know your data (ingredients) - the variables, data types, distributions, any spatial or temporal patterns
 -   Failure to get to know your data properly means you might misspecify your model by:
     -   using the wrong explanatory variables or omitting some key ones
-    -   misunderstanding your data types - counts vs continuous
+    -   misunderstanding your data types - e.g. counts vs continuous
     -   misunderstanding the relationships between your variables (linear vs logarithmic)
-    -   not accounting for important spatial or temporal patterns that might mean your observations are not independent
+    -   not accounting for important spatial or temporal patterns (autocorrelation) that might mean your observations are not independent
 
-## Step 1a - Ingredients
+## Step 1a - Ingredients (gathering and preparation) {transition="convex-in none-out" transition-speed="fast"}
 
 ::::: columns
 ::: {.column width="60%"}
--   The UK Government collects LOTS of data on schools and pupils
 -   The data is collected by the Department for Education (DfE), published annually and is comprehensive - a full annual census of each school
 -   For each school, hundreds of variables are available relating to:
     -   attainment and progress
     -   pupil characteristics
     -   school characteristics
+-   Some data / variables (ingredients) will be more useful than others, the exploration phase will help you select
 
 :::
 
@@ -312,7 +313,7 @@ The Conversation: <https://theconversation.com/poorer-pupils-do-worse-at-school-
 DfE Data: <https://www.compare-school-performance.service.gov.uk/compare-schools>
 :::
 
-## Step 1a - Ingredients
+## Step 1a - Ingredients (gathering and preparation) {transition="convex-in none-out" transition-speed="fast"}
 
 ```{r}
 library(reactable)
@@ -326,7 +327,7 @@ england_school_2022_23 %>%
   reactable(theme = casa_reactable_theme(colour = "purple"))
 ```
 
-## Step 1b - Ingredient Familiarisation {transition="convex-in none-out" transition-speed="fast"}
+## Step 1b - Ingredients (familiarisation) {transition="convex-in none-out" transition-speed="fast"}
 
 ```{r}
 library(dplyr)
@@ -384,48 +385,161 @@ leaflet(sf_df) |>
     opacity = 0.7
   )
 ```
+-   Visualisation is perhaps the most important part of the EDA phase
+-   Always map and graph your data so that you can spot potential issues before they ruin your model!
 
-
-
-## Step 1b - Ingredient Familiarisation {transition="convex-in none-out" transition-speed="fast"}
+## Step 1b - Ingredients (familiarisation) {transition="convex-in none-out" transition-speed="fast"}
 
 ```{r}
 #| label: attainment-8-histogram
 #| fig.width: 8
 #| fig.height: 5
-#| fig.cap: "Histogram of Attainment 8 Scores for all schools in England and Wales, 2022/23 Academic Year"
 #| fig.align: "center"
 
 median_value <- median(england_school_2022_23$ATT8SCR, na.rm = TRUE)
+mean_value   <- mean(england_school_2022_23$ATT8SCR, na.rm = TRUE)
 
 ggplot(england_school_2022_23, aes(x = ATT8SCR)) +
-  geom_histogram(binwidth = 1, fill = "grey", alpha = 0.4) +  # New color for the bars with added transparency
+  geom_histogram(binwidth = 1, fill = "#4E3C56", alpha = 0.4) +
   geom_vline(xintercept = median_value, color = "black", linetype = "dotted", size = 1) +
-  labs(title = "Attainment 8 - All Schools 2022/23 Academic Year",
-       x = "Attainment 8 Score",
-       y = "Count")
+  geom_vline(xintercept = mean_value, color = "#F9DD73", linetype = "solid", size = 1) +
+  annotate("text",
+           x = median_value, y = Inf,
+           label = paste0("Median = ", round(median_value, 1)),
+           vjust = 1.3, color = "black", size = 3.5) +
+  annotate("text",
+           x = mean_value, y = Inf,
+           label = paste0("Mean = ", round(mean_value, 1)),
+           vjust = 30.5, color = "#F9DD73", size = 3.5) +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.08))) +
+  labs(
+    title = "Attainment 8 - All Schools England and Wales, 2022/23 Academic Year",
+    x = "Attainment 8 Score",
+    y = "Count of Schools"
+  )+
+  theme_minimal()
 
 ```
+
+-   Are there any problems that could be indicated here?
+
+## Step 1b - Ingredients (familiarisation) {transition="convex-in none-out" transition-speed="fast"}
 
 ```{r}
 #| label: attainment-8-boxplot
 #| fig.width: 8
 #| fig.height: 5
-#| fig.cap: "Boxplot of Attainment 8 Scores with Jittered School-Level Points, 2022/23 Academic Year"
 #| fig.align: "center"
 
 library(ggplot2)
+library(casaviz)  # ensure the package is loaded so its scale functions are available
 
 median_value <- median(england_school_2022_23$ATT8SCR, na.rm = TRUE)
 
-ggplot(england_school_2022_23, aes(x = "", y = ATT8SCR)) +
-  geom_boxplot(fill = "lightblue", alpha = 0.6, outlier.shape = NA) +  # Suppress default outliers
-  geom_jitter(width = 0.2, alpha = 0.4, color = "darkblue", size = 1) +  # Jittered points
-  geom_hline(yintercept = median_value, color = "black", linetype = "dotted", size = 1) +
-  labs(title = "Attainment 8 - All Schools 2022/23 Academic Year",
-       x = "",
-       y = "Attainment 8 Score")
+ggplot(england_school_2022_23, aes(x = ATT8SCR, y = "")) +
+  geom_boxplot(fill = "#EDD971", alpha = 0.1, outlier.shape = NA) +    
+  geom_jitter(aes(colour = MINORGROUP), height = 0.2, alpha = 0.8, size = 1) + 
+  scale_colour_casa() +  # applies the default casaviz discrete palette
+  labs(
+    title = "Attainment 8 - All Schools 2022/23 Academic Year",
+    x = "Attainment 8 Score",
+    y = NULL,
+    colour = "School Type"
+  ) +
+  theme_minimal() +
+  theme(
+    legend.position = "bottom",
+    legend.key.size = unit(10, "mm"),   # increase dot space
+    legend.text = element_text(size = 10)  # optional: larger legend labels
+  ) + guides(colour = guide_legend(override.aes = list(size = 4)))
 ```
+-   Notice anything now?
+-   What could/should we do about it? Any suggestions?
+
+## Step 1c - Ingredients (selection) {transition="convex-in none-out" transition-speed="fast"}
+
+```{r}
+library(ggplot2)
+library(dplyr)
+
+# Filter out unwanted categories
+england_filtered <- england_school_2022_23 %>%
+  filter(!MINORGROUP %in% c("Special school", "Independent school", "College", NA))
+
+# Recalculate stats on the filtered data
+median_value <- median(england_filtered$ATT8SCR, na.rm = TRUE)
+mean_value   <- mean(england_filtered$ATT8SCR, na.rm = TRUE)
+
+ggplot(england_filtered, aes(x = ATT8SCR, y = "")) +
+  geom_boxplot(fill = "#EDD971", alpha = 0.1, outlier.shape = NA) +    
+  geom_jitter(aes(colour = MINORGROUP), height = 0.2, alpha = 0.5, size = 1) + 
+  # Median + mean lines
+  # Custom fixed palette matching previous graph
+  scale_colour_manual(
+    values = c(
+      "Academy"          = "#2E6260",
+      "Maintained school" = "#E16FCA"
+    )
+  ) +
+  labs(
+    title = "Attainment 8 - All Schools 2022/23 Academic Year (Selected Groups)",
+    x = "Attainment 8 Score",
+    y = NULL,
+    colour = "School Type"
+  ) +
+  theme_minimal() +
+  theme(
+    legend.position = "bottom",
+    legend.key.size = unit(4, "mm")
+  ) +
+  guides(colour = guide_legend(override.aes = list(size = 3)))
+```
+
+## Step 1c - Ingredients (selection) {transition="convex-in none-out" transition-speed="fast"}
+
+```{r}
+#| label: attainment-8-histogram2
+#| fig.width: 8
+#| fig.height: 5
+#| fig.align: "center"
+
+library(ggplot2)
+library(dplyr)
+
+# Filter data
+england_filtered <- england_school_2022_23 %>%
+  filter(!MINORGROUP %in% c("Special school", "Independent school", "College", NA))
+
+# Recalculate stats for filtered data
+median_value <- median(england_filtered$ATT8SCR, na.rm = TRUE)
+mean_value   <- mean(england_filtered$ATT8SCR, na.rm = TRUE)
+
+ggplot(england_filtered, aes(x = ATT8SCR)) +
+  geom_histogram(binwidth = 1, fill = "#4E3C56", alpha = 0.4) +
+  geom_vline(xintercept = median_value, colour = "black", linetype = "dotted", size = 1) +
+  geom_vline(xintercept = mean_value, colour = "#F9DD73", linetype = "solid", size = 1) +
+  annotate("text",
+           x = median_value, y = Inf,
+           label = paste0("Median = ", round(median_value, 1)),
+           vjust = 1.3, colour = "black", size = 3.5) +
+  annotate("text",
+           x = mean_value, y = Inf,
+           label = paste0("Mean = ", round(mean_value, 1)),
+           vjust = 30.5, colour = "#F9DD73", size = 3.5) +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.08))) +
+  labs(
+    title = "Attainment 8 - Selected School Types, England and Wales, 2022/23",
+    x = "Attainment 8 Score",
+    y = "Count of Schools"
+  ) +
+  theme_minimal()
+```
+
+## Step 1c - Ingredients (selection) {transition="convex-in none-out" transition-speed="fast"}
+
+-   The process of exploring and interrogating your data should probably take much longer than the actual modelling at the end
+-   If we go back to our our cake baking analogy - indeed there are probably many other similar analogies - but it is the preparation that can take most of the time
+ 
 
 ## Regression Fundamentals {transition="convex-in none-out" transition-speed="fast"}
 
