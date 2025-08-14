@@ -16,7 +16,7 @@ format:
     slide-number: false
     preview-links: auto
     theme: casa-slides.scss
-    footer: "&copy; CASA &nbsp; | &nbsp; [ucl.ac.uk/bartlett/casa](https://www.ucl.ac.uk/bartlett/casa)"
+    
 filters:
  - code-visibility
 lightbox: auto
@@ -32,6 +32,8 @@ title-slide-attributes:
 #| message: false
 #| warning: false
 #| include: false
+
+#casaviz::view_palette(casaviz::casa_palettes$default, n_colours = 10)
 
 ##before we do anything else, let's load the packages we need and the data we require
 
@@ -49,6 +51,8 @@ library(purrr)
 library(janitor)
 library(readxl)
 library(tibble)
+library(ggrepel)
+library(gganimate)
 
 #all england schools
 edubase_schools <- read_csv("https://www.dropbox.com/scl/fi/fhzafgt27v30lmmuo084y/edubasealldata20241003.csv?rlkey=uorw43s44hnw5k9js3z0ksuuq&raw=1") %>% 
@@ -264,12 +268,12 @@ The Conversation: <https://theconversation.com/poorer-pupils-do-worse-at-school-
 
 ::::: columns
 ::: {.column width="60%"}
--   One way to think about regression modelling is as a recipe. 
+-   One way to think about regression modelling is as a recipe.
 -   The recipe has a number of steps, each of which is important to the final outcome
 -   As with baking a cake, failure will follow if you don't:
-    -    get your ingredients right
-    -    follow the method correctly 
-    -    use your equipment in the right way
+    -   get your ingredients right
+    -   follow the method correctly
+    -   use your equipment in the right way
 -   You may need to iterate around these a few times during the process
 :::
 
@@ -284,8 +288,8 @@ The Conversation: <https://theconversation.com/poorer-pupils-do-worse-at-school-
 ## Step 1 - Ingredients {transition="convex-in none-out" transition-speed="fast"}
 
 -   The Exploratory Data Analysis (EDA) phase is the most important part of any modelling exercise (see Weeks 1 & 2 of this course)
--   The EDA phase is where you get to know your data (ingredients) - the variables, data types, distributions, any spatial or temporal patterns
--   Failure to get to know your data properly means you might misspecify your model by:
+-   It is where you get to know your data (ingredients) - the variables, data types, distributions, any spatial or temporal patterns
+-   Failure to get to know your data properly means you might mis-specify your model by:
     -   using the wrong explanatory variables or omitting some key ones
     -   misunderstanding your data types - e.g. counts vs continuous
     -   misunderstanding the relationships between your variables (linear vs logarithmic)
@@ -300,8 +304,7 @@ The Conversation: <https://theconversation.com/poorer-pupils-do-worse-at-school-
     -   attainment and progress
     -   pupil characteristics
     -   school characteristics
--   Some data / variables (ingredients) will be more useful than others, the exploration phase will help you select
-
+-   Some data / variables (ingredients) will be more useful than others
 :::
 
 ::: {.column width="40%"}
@@ -385,6 +388,7 @@ leaflet(sf_df) |>
     opacity = 0.7
   )
 ```
+
 -   Visualisation is perhaps the most important part of the EDA phase
 -   Always map and graph your data so that you can spot potential issues before they ruin your model!
 
@@ -398,9 +402,12 @@ leaflet(sf_df) |>
 
 median_value <- median(england_school_2022_23$ATT8SCR, na.rm = TRUE)
 mean_value   <- mean(england_school_2022_23$ATT8SCR, na.rm = TRUE)
+sd_value   <- sd(england_school_2022_23$ATT8SCR, na.rm = TRUE)
 
 ggplot(england_school_2022_23, aes(x = ATT8SCR)) +
-  geom_histogram(binwidth = 1, fill = "#4E3C56", alpha = 0.4) +
+  geom_histogram(aes(y = ..density..), binwidth = 1, fill = "#4E3C56", alpha = 0.4) +
+  stat_function(fun = dnorm, args = list(mean = mean_value, sd = sd_value),
+                color = "#2E6260", size = 1) +
   geom_vline(xintercept = median_value, color = "black", linetype = "dotted", size = 1) +
   geom_vline(xintercept = mean_value, color = "#F9DD73", linetype = "solid", size = 1) +
   annotate("text",
@@ -415,13 +422,14 @@ ggplot(england_school_2022_23, aes(x = ATT8SCR)) +
   labs(
     title = "Attainment 8 - All Schools England and Wales, 2022/23 Academic Year",
     x = "Attainment 8 Score",
-    y = "Count of Schools"
-  )+
+    y = "Density"
+  ) +
   theme_minimal()
+
 
 ```
 
--   Are there any problems that could be indicated here?
+-  Hmmm? Are there any problems that could be indicated here?
 
 ## Step 1b - Ingredients (familiarisation) {transition="convex-in none-out" transition-speed="fast"}
 
@@ -453,6 +461,7 @@ ggplot(england_school_2022_23, aes(x = ATT8SCR, y = "")) +
     legend.text = element_text(size = 10)  # optional: larger legend labels
   ) + guides(colour = guide_legend(override.aes = list(size = 4)))
 ```
+
 -   Notice anything now?
 -   What could/should we do about it? Any suggestions?
 
@@ -482,7 +491,7 @@ ggplot(england_filtered, aes(x = ATT8SCR, y = "")) +
     )
   ) +
   labs(
-    title = "Attainment 8 - All Schools 2022/23 Academic Year (Selected Groups)",
+    title = "Attainment 8 - Academy and Maintained Schools 2022/23 Academic Year",
     x = "Attainment 8 Score",
     y = NULL,
     colour = "School Type"
@@ -513,9 +522,12 @@ england_filtered <- england_school_2022_23 %>%
 # Recalculate stats for filtered data
 median_value <- median(england_filtered$ATT8SCR, na.rm = TRUE)
 mean_value   <- mean(england_filtered$ATT8SCR, na.rm = TRUE)
+sd_value   <- sd(england_filtered$ATT8SCR, na.rm = TRUE)
 
 ggplot(england_filtered, aes(x = ATT8SCR)) +
-  geom_histogram(binwidth = 1, fill = "#4E3C56", alpha = 0.4) +
+  geom_histogram(aes(y = ..density..), binwidth = 1, fill = "#4E3C56", alpha = 0.4) +
+  stat_function(fun = dnorm, args = list(mean = mean_value, sd = sd_value),
+                color = "#2E6260", size = 1) +
   geom_vline(xintercept = median_value, colour = "black", linetype = "dotted", size = 1) +
   geom_vline(xintercept = mean_value, colour = "#F9DD73", linetype = "solid", size = 1) +
   annotate("text",
@@ -528,18 +540,409 @@ ggplot(england_filtered, aes(x = ATT8SCR)) +
            vjust = 30.5, colour = "#F9DD73", size = 3.5) +
   scale_y_continuous(expand = expansion(mult = c(0, 0.08))) +
   labs(
-    title = "Attainment 8 - Selected School Types, England and Wales, 2022/23",
+    title = "Attainment 8 - Academy and Maintained Schools 2022/23 Academic Year",
     x = "Attainment 8 Score",
-    y = "Count of Schools"
+    y = "Density"
   ) +
   theme_minimal()
 ```
 
 ## Step 1c - Ingredients (selection) {transition="convex-in none-out" transition-speed="fast"}
 
--   The process of exploring and interrogating your data should probably take much longer than the actual modelling at the end
--   If we go back to our our cake baking analogy - indeed there are probably many other similar analogies - but it is the preparation that can take most of the time
- 
+-   The process of exploring and interrogating your data should take much longer than the modelling at the end
+-   The process is iterative - you might well be exploring your data and the theory ***at the same time*** to help you explore, filter, select and prepare for the modelling phase
+-   Understanding your 'system' and what the key elements are is vital.
+    -   Sometimes this might come from experience (e.g. I used to be a school teacher so know that 'Special Schools' teach children with complex needs where academic performance is likely to be lower or that if you are at 'college' \[usually post-16\], then likely to be re-taking or studying for a reduced programme of GCSEs))
+    -   more often you will have to carry out your own research to help you understand your system and its key elements
+
+## Step 1c - Ingredients (selection) {transition="convex-in none-out" transition-speed="fast"}
+
+-   The role of theory and wider research on your system is vital in helping you select your variables for investigation
+-   **DO NOT JUST THROW EVERYTHING INTO YOUR MODEL JUST BECAUSE YOU HAVE SOME VARIABLES**
+    -   This is a common mistake
+    -   It can also lead to spurious interpretation where correlation and causation are not the same thing
+-   Carrying out a thorough literature review will also give you context for interpreting your model results later on in the process
+
+## Step 1c - Ingredients (selection) {transition="convex-in none-out" transition-speed="fast"}
+
+::::: columns
+::: {.column width="60%"}
+-   Brighton and Hove City Council relied heavily on the work of Gorard in building its policy
+-   Paper links social mixing to improved attainment for disadvantaged pupils
+-   Includes variables such as:
+    -   school type (e.g. academy, maintained)
+    -   pupil characteristics (e.g. free school meals (FSM) eligibility, special educational needs, ethnicity)
+    -   school characteristics (e.g. size, location)
+-   Thus all might be worth investigating
+:::
+
+::: {.column width="40%"}
+![](images/gorard_disad_paper.png)
+:::
+:::::
+
+::: footer
+<https://journals.sagepub.com/doi/full/10.1177/2158244018825171>
+:::
+
+## Step 1c - Ingredients (selection) {transition="convex-in none-out" transition-speed="fast"}
+
+::::: columns
+::: {.column width="60%"}
+-   However, wider reading also suggests that factors such as attendance (which Gordard does not include in his paper as a variable) may also play a big role in the attainment of disadvantaged pupils
+-   Work by Claymore suggests that a large proportion of the gap in attainment between disadvantaged pupils and more affluent peers can be explained by:
+    -   the differences in absence rates
+    -   exclusion
+    -   rates of moving between schools
+:::
+
+::: {.column width="40%"}
+![](images/nfer.png)
+:::
+:::::
+
+::: footer
+<https://www.nfer.ac.uk/publications/being-present-the-power-of-attendance-and-stability-for-disadvantaged-pupils/>
+:::
+
+## Step 2 - Method
+
+![](images/stat_tests.png){width="80%"}
+
+::: Footer
+<https://statsandr.com/blog/files/overview-statistical-tests-statsandr.pdf>
+:::
+
+## Step 2 - Method {transition="convex-in none-out" transition-speed="fast"}
+
+-   ***Based on our raw ingredients, which methods might allow us to try and answer our research question(s)?***
+-   ***Dependent variable(s)*** (what we are trying to explain / predict): Attainment 8 / Progress 8 **-\>** continuous / Ratio scales
+-   ***Independent variables*** - explanatory / predictor variables of varying data types to explain variation in the dependent variable
+-   As such ***Linear Regression*** is the most appropriate statistical test to employ
+
+
+
+## Linear Regression
+
+
+```{r}
+#| warning: FALSE
+#| out-width: "60%"
+#| fig-align: "center"
+
+## get LEA Code from here: https://get-information-schools.service.gov.uk/Guidance/LaNameCodes
+
+# Filter data
+btn_sub <- england_filtered %>%
+  filter(LEA == 846) %>% 
+  select(URN, SCHNAME.x, LEA, ATT8SCR, PTFSM6CLA1A)
+
+#| warning: FALSE
+#| out-width: "60%"
+#| fig-align: "center"
+
+## get LEA Code from here: https://get-information-schools.service.gov.uk/Guidance/LaNameCodes
+
+# Filter data
+btn_sub <- england_filtered %>%
+  filter(LEA == 846) %>% 
+  select(URN, SCHNAME.x, LEA, ATT8SCR, PTFSM6CLA1A)
+
+# Define custom color palette
+custom_colors <- c(
+  "#2E6260", "#658E62", "#9DBB65", "#C4CE6A", "#E7D870",
+  "#F3C486", "#E993AC", "#D069BD", "#8F5289", "#4E3C56"
+)
+
+school_levels <- unique(btn_sub$SCHNAME.x)
+school_colors <- setNames(
+  rep(custom_colors, length.out = length(school_levels)),
+  school_levels
+)
+
+
+# Filter data
+btn_sub <- england_filtered %>%
+  filter(LEA == 846) %>%
+  select(URN, SCHNAME.x, LEA, ATT8SCR, PTFSM6CLA1A)
+
+# Fit linear model and get predicted values
+lm_fit <- lm(ATT8SCR ~ PTFSM6CLA1A, data = btn_sub)
+btn_sub <- btn_sub %>%
+  mutate(predicted = predict(lm_fit),
+         residual = ATT8SCR - predicted)
+
+# Create annotation text
+slope <- round(coef(lm_fit)[2], 2)
+intercept <- round(coef(lm_fit)[1], 2)
+annotation_text <- paste0("y = ", intercept, " + ", slope, "x")
+
+# Assign colors to schools
+school_levels <- unique(btn_sub$SCHNAME.x)
+school_colors <- setNames(
+  rep(custom_colors, length.out = length(school_levels)),
+  school_levels
+)
+
+# Plot with residual lines and custom colors
+ggplot(btn_sub, aes(x = PTFSM6CLA1A, y = ATT8SCR, color = SCHNAME.x)) +
+  geom_point(size = 3, alpha = 0.9) +
+  labs(
+    title = "Brighton and Hove Schools - Attainment 8 vs % Disadvantaged Students, 2022-23",
+    x = "% Disadvantaged Students",
+    y = "Average Attainment 8 Score",
+    color = "School"
+  ) +
+  scale_color_manual(values = school_colors) +
+  theme_minimal() +
+  theme(
+    legend.position = c(1, 1),           # top-right inside plot
+    legend.justification = c(1, 1)
+  ) 
+
+```
+
+-   **A regression model is nothing more than a description of a scatter plot**
+-   Dependent variable = $Y$-axis 
+-   Independent variable = $X$-axis
+
+## Linear Regression
+
+```{r}
+#| out-width: "60%"
+#| fig-align: "center"
+#| 
+## get LEA Code from here: https://get-information-schools.service.gov.uk/Guidance/LaNameCodes
+
+# Filter data
+btn_sub <- england_filtered %>%
+  filter(LEA == 846) %>% 
+  select(URN, SCHNAME.x, LEA, ATT8SCR, PTFSM6CLA1A)
+
+# Fit linear model
+lm_fit <- lm(ATT8SCR ~ PTFSM6CLA1A, data = btn_sub)
+slope <- round(coef(lm_fit)[2], 2)
+intercept <- round(coef(lm_fit)[1], 2)
+
+# Create annotation text
+annotation_text <- paste0("y = ", intercept, " + ", slope, "x")
+
+# Plot with annotation
+ggplot(btn_sub) +
+  geom_point(aes(x = PTFSM6CLA1A, y = ATT8SCR)) +
+  geom_smooth(aes(x = PTFSM6CLA1A, y = ATT8SCR), method = "lm", se = FALSE, color = "#8F5289") +
+  labs(title = "Brighton and Hove Schools - Attainment 8 vs % Disadvantaged Students, 2022-23",
+       x = "% Disadvantaged Students",
+       y = "Average Attainment 8 Score") +
+  theme_minimal()
+```
+
+-   The linear regression model is the straight line of best-fit 
+-   A linear model function `lm()` (in `R`) uses a method called ***Ordinary Least Squares (OLS)*** to find the line of best-fit.
+-   The best line minimises the squared (so that negatives and positives don't candel) vertical distances between the line and the points - hence OLS
+
+## Linear Regression
+
+```{r}
+#| out-width: "60%"
+#| fig-align: "center"
+
+# Filter data (assuming england_filtered is in your environment)
+btn_sub <- england_filtered %>%
+  filter(LEA == 846) %>% 
+  select(URN, SCHNAME.x, LEA, ATT8SCR, PTFSM6CLA1A)
+
+# Fit linear model
+lm_fit <- lm(ATT8SCR ~ PTFSM6CLA1A, data = btn_sub)
+
+# Get the R-squared value from the model summary
+r2_value <- summary(lm_fit)$r.squared
+
+# Create the annotation text with the R-squared value, rounded to 2 decimal places
+annotation_text <- paste0("R² = ", round(r2_value, 2))
+
+# Plot with residual lines and the new annotation
+ggplot(btn_sub, aes(x = PTFSM6CLA1A, y = ATT8SCR)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, color = "#8F5289") +
+  geom_segment(aes(xend = PTFSM6CLA1A, yend = predict(lm_fit)),
+               linetype = "dotted", color = "grey50") +
+  # Use the new R-squared annotation
+  annotate("text", 
+           x = max(btn_sub$PTFSM6CLA1A, na.rm = TRUE), 
+           y = min(btn_sub$ATT8SCR, na.rm = TRUE), 
+           label = annotation_text, 
+           hjust = 1, vjust = -10, size = 4, color = "#4E3C56") +
+  labs(title = "Brighton and Hove Schools - Attainment 8 vs % Disadvantaged Students, 2022-23",
+       x = "% Disadvantaged Students",
+       y = "Average Attainment 8 Score") +
+  theme_minimal()
+```
+
+-   The vertical distances between the points and the line of best fit are called the **residuals** - sometimes also referred to as the **errors** or $\epsilon$
+-   The closer the points are to the line, the better the fit of the model
+
+## Linear Regression
+
+```{r}
+#| out-width: "60%"
+#| fig-align: "center"
+
+# Filter data (assuming england_filtered is in your environment)
+btn_sub <- england_filtered %>%
+  filter(LEA == 846) %>% 
+  select(URN, SCHNAME.x, LEA, ATT8SCR, PTFSM6CLA1A)
+
+# Fit linear model
+lm_fit <- lm(ATT8SCR ~ PTFSM6CLA1A, data = btn_sub)
+
+# Get the R-squared value from the model summary
+r2_value <- summary(lm_fit)$r.squared
+
+# Create the annotation text with the R-squared value, rounded to 2 decimal places
+annotation_text <- paste0("R² = ", round(r2_value, 2))
+
+# Plot with residual lines and the new annotation
+ggplot(btn_sub, aes(x = PTFSM6CLA1A, y = ATT8SCR)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, color = "#8F5289") +
+  geom_segment(aes(xend = PTFSM6CLA1A, yend = predict(lm_fit)),
+               linetype = "dotted", color = "grey50") +
+  # Use the new R-squared annotation
+  annotate("text", 
+           x = max(btn_sub$PTFSM6CLA1A, na.rm = TRUE), 
+           y = min(btn_sub$ATT8SCR, na.rm = TRUE), 
+           label = annotation_text, 
+           hjust = 1, vjust = -10, size = 4, color = "#4E3C56") +
+  labs(title = "Brighton and Hove Schools - Attainment 8 vs % Disadvantaged Students, 2022-23",
+       x = "% Disadvantaged Students",
+       y = "Average Attainment 8 Score") +
+  theme_minimal()
+```
+
+-   The fit of the model is represented by the $R^2$ value and is calculated from the residuals
+-   It describes how much of the variation in $Y$ (Attainment 8 score) is explained by the variation in $X$ (% Disadvantaged Students) - here 69%
+-   The closer to 1, the better the fit of the model
+
+
+## Linear Regression
+
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+#| fig-align: center
+#| out-width: 60%
+
+# Filter data
+btn_sub <- england_filtered %>%
+  filter(LEA == 846) %>% 
+  select(URN, SCHNAME.x, LEA, ATT8SCR, PTFSM6CLA1A)
+
+# Fit linear model and get predicted values
+lm_fit <- lm(ATT8SCR ~ PTFSM6CLA1A, data = btn_sub)
+btn_sub <- btn_sub %>%
+  mutate(predicted = predict(lm_fit),
+         residual = ATT8SCR - predicted)
+
+
+# Create annotation text
+slope <- round(coef(lm_fit)[2], 2)
+intercept <- round(coef(lm_fit)[1], 2)
+annotation_text <- paste0("y = ", intercept, " + ", slope, "x")
+
+ggplot(btn_sub, aes(x = PTFSM6CLA1A, y = ATT8SCR)) +
+  geom_point() +
+  geom_abline(intercept = coef(lm_fit)[1], slope = coef(lm_fit)[2], color = "#8F5289") +
+  geom_segment(aes(xend = PTFSM6CLA1A, yend = predicted),
+               linetype = "dotted", color = "grey50") +
+  annotate("text", x = max(btn_sub$PTFSM6CLA1A, na.rm = TRUE), 
+           y = min(btn_sub$ATT8SCR, na.rm = TRUE), 
+           label = annotation_text, hjust = 1, vjust = -15, size = 4, color = "#4E3C56") +
+  labs(title = "Brighton and Hove Schools - Attainment 8 vs % Disadvantaged Students, 2022-23",
+       x = "% Disadvantaged Students",
+       y = "Average Attainment 8 Score") +
+  xlim(0, max(50)) +
+  ylim(min(30), 65) +
+  theme_minimal()
+
+```
+
+-   The regression line itself can be described by an equation with two parameters / coefficients:
+    -   The **intercept** - $\beta_0$ - which is the value of $Y$ when $X = 0$
+    -   The **slope** - $\beta_1$ - which the change in the value of $Y$ for a 1 unit change in $X$
+
+## Linear Regression
+
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+#| fig-align: center
+#| out-width: 60%
+
+# Filter data
+btn_sub <- england_filtered %>%
+  filter(LEA == 846) %>% 
+  select(URN, SCHNAME.x, LEA, ATT8SCR, PTFSM6CLA1A)
+
+# Fit linear model and get predicted values
+lm_fit <- lm(ATT8SCR ~ PTFSM6CLA1A, data = btn_sub)
+btn_sub <- btn_sub %>%
+  mutate(predicted = predict(lm_fit),
+         residual = ATT8SCR - predicted)
+
+
+# Create annotation text
+slope <- round(coef(lm_fit)[2], 2)
+intercept <- round(coef(lm_fit)[1], 2)
+annotation_text <- paste0("y = ", intercept, " + ", slope, "x")
+
+ggplot(btn_sub, aes(x = PTFSM6CLA1A, y = ATT8SCR)) +
+  geom_point() +
+  geom_abline(intercept = coef(lm_fit)[1], slope = coef(lm_fit)[2], color = "#8F5289") +
+  geom_segment(aes(xend = PTFSM6CLA1A, yend = predicted),
+               linetype = "dotted", color = "grey50") +
+  annotate("text", x = max(btn_sub$PTFSM6CLA1A, na.rm = TRUE), 
+           y = min(btn_sub$ATT8SCR, na.rm = TRUE), 
+           label = annotation_text, hjust = 1, vjust = -15, size = 4, color = "#4E3C56") +
+  labs(title = "Brighton and Hove Schools - Attainment 8 vs % Disadvantaged Students, 2022-23",
+       x = "% Disadvantaged Students",
+       y = "Average Attainment 8 Score") +
+  xlim(0, max(50)) +
+  ylim(min(30), 65) +
+  theme_minimal()
+
+```
+$$Y = \beta_0 + \beta_1X_1 + \epsilon$$
+$$\hat{Y} = 62.35 + (-0.63 * X) + \epsilon$$
+$$49.75 = 62.35 + (-0.63 * 20) + 0$$
+
+
+## Linear Regression
+
+```{r}
+#| out-width: "60%"
+#| fig-align: "center"
+summary(lm_fit)
+```
+
+-   Scatter plots are an excellent (probably the best) way to understand the relationship between two continuous variables
+-   But, statistical software will provide you with the key parameters that describe your scatter plot - plus some other useful additional information
+
+## Linear Regression
+
+![](images/the_Call.png)
+
+-   This is the code representation of the model equation we saw earlier:
+    -   `lm()` is the function that fits a linear model
+    -   `ATT8SCR` (Attainment 8 Score) is the dependent variable $Y$
+    -   `~` means "is modelled by"
+    -   `PTFSM6CLA1A` (% Disadvantaged Students) is the independent variable $X$
+    -   `data = bnt_sub` is the dataset we are using which contains the variables
+    
+
+
 
 ## Regression Fundamentals {transition="convex-in none-out" transition-speed="fast"}
 
@@ -561,61 +964,3 @@ ggplot(england_filtered, aes(x = ATT8SCR)) +
     -   $\beta_0$ is the intercept (constant term)
     -   $\beta_1, \beta_2, ..., \beta_n$ are the coefficients for each independent variable
     -   $\epsilon$ is the error term (residuals)
-
-##  {.half-and-half}
-
-:::::: columns
-::: {.column width="45%"}
-<h2>These half and half slides only really work with columns</h2>
-
-This slide shows you how to do that.
-:::
-
-::: {.column width="10%"}
-:::
-
-::: {.column width="45%"}
-```{r}
-# Create the histogram with vertical lines using the Set3 palette
-median_value <- median(england_school_2022_23$ATT8SCR, na.rm = TRUE)
-
-ggplot(england_school_2022_23, aes(x = ATT8SCR)) +
-  geom_histogram(binwidth = 1, fill = "grey", alpha = 0.4) +  # New color for the bars with added transparency
-  geom_vline(xintercept = median_value, color = "black", linetype = "dotted", size = 1) +
-  labs(title = "Attainment 8 - All Schools 2022/23 Academic Year",
-       x = "Attainment 8 Score",
-       y = "Count")
-```
-:::
-::::::
-
-::: footer
-:::
-
-## Media Backgrounds with brand colour {background="#4e3c56" background-image="https://www.ucl.ac.uk/bartlett/sites/bartlett/files/styles/department_hero_laptop/public/dirk_krolikowski_spatial_tectonic_0.jpg.webp?itok=LchrWxlf" background-opacity="0.1"}
-
-You can use the following as a slide background:
-
--   An image: `background-image`
--   A video: `background-video`
--   An iframe: `background-iframe`
-
-Setting a dark background colour automatically changes the text formatting to "dark mode".
-
-::: footer
-Learn more: [Media Backgrounds](https://quarto.org/docs/presentations/revealjs/#image-backgrounds)
-:::
-
-## Thank you {background-image="images/title-slide.png" background-color="#0F0C11" background-opacity="0.2"}
-
-::::: columns
-::: column
-That's it. Happy presenting!
-
-For more tips on making the most of Quarto, use `casaviz::create_slides("my-file-name", demo = TRUE)`.
-:::
-
-::: column
-<center><img src="images/CASA_logo.svg" style="filter: drop-shadow(0px 0px 1px #F6F5F6);"/></center>
-:::
-:::::

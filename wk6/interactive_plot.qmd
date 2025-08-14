@@ -1,0 +1,98 @@
+---
+title: "Interactive Regression Analysis"
+format: html
+server: shiny
+---
+
+```{r setup, include=FALSE}
+#| label: setup
+#| include: false
+library(shiny)
+library(plotly)
+library(dplyr)
+
+# Recreate the dataset
+btn_sub <- tibble(
+  URN = c("114606", "136164", "114611", "114580", "114607", "139409", "114581", "114608", "137063", "114579"),
+  SCHNAME.x = c("Blatchington Mill School", "Brighton Aldridge Community Academy", "Cardinal Newman Catholic School", "Dorothy Stringer School", "Hove Park School and Sixth Form Centre", "King's School", "Longhill High School", "Patcham High School", "Portslade Aldridge Community Academy", "Varndean School"),
+  LEA = 846,
+  ATT8SCR = c(49.7, 36.2, 51.8, 53.8, 46.8, 54.3, 35.8, 47.9, 44.8, 54.5),
+  PTFSM6CLA1A = c(15, 45, 18, 18, 29, 16, 29, 19, 26, 20)
+)
+
+# Store the data in a reactive value to allow it to be modified
+rv <- reactiveValues(data = btn_sub)
+```
+
+```{r}
+#| label: plot
+#| echo: false
+#| out.width: "100%"
+
+renderPlotly({
+  
+  req(rv$data)
+  
+  # Recalculate the linear model with the reactive data
+  lm_model <- lm(ATT8SCR ~ PTFSM6CLA1A, data = rv$data)
+  
+  # Create the plot with the regression line
+  fig <- plot_ly(data = rv$data, type = 'scatter', mode = 'markers', 
+                 x = ~PTFSM6CLA1A, y = ~ATT8SCR,
+                 text = ~SCHNAME.x, # Display school name on hover
+                 hovertemplate = "<b>%{text}</b><br>PTFSM6CLA1A: %{x}<br>ATT8SCR: %{y}<extra></extra>") %>%
+    
+    add_trace(x = ~PTFSM6CLA1A, y = ~fitted(lm_model), mode = 'lines',
+              line = list(color = 'red', width = 2),
+              hoverinfo = 'none') %>%
+    
+    layout(xaxis = list(title = "PTFSM6CLA1A"),
+           yaxis = list(title = "Attainment 8 Score (ATT8SCR)")) %>%
+           
+    config(edits = list(shape = TRUE, axis = TRUE, legend = FALSE)) %>%
+    toWebGL()
+  
+  # Return the plot
+  fig
+})
+```
+
+
+```{r}
+#| label: parameters
+#| echo: false
+
+renderPrint({
+  req(rv$data)
+  lm_model <- lm(ATT8SCR ~ PTFSM6CLA1A, data = rv$data)
+  
+  cat("Current Regression Model Parameters:\n\n")
+  cat(sprintf("Intercept: %.4f\n", lm_model$coefficients[1]))
+  cat(sprintf("Slope: %.4f\n", lm_model$coefficients[2]))
+})
+```
+
+
+```{r}
+#| label: observers
+#| echo: false
+#| server: shiny
+
+# Observer to handle point dragging events
+observeEvent(event_data("plotly_relayout"), {
+  
+  d <- event_data("plotly_relayout")
+  
+  # Check if a point was dragged (x and y are in the event data)
+  if (!is.null(d[["x"]])) {
+    
+    # Get the index of the dragged point
+    idx <- as.integer(gsub("points\\[(.*?)\\]\\.x", "\\1", names(d)[1])) + 1
+    
+    # Update the data in the reactive value
+    rv$data[idx, "PTFSM6CLA1A"] <- d[[paste0("points[", idx - 1, "].x")]]
+    rv$data[idx, "ATT8SCR"] <- d[[paste0("points[", idx - 1, "].y")]]
+  }
+})
+```
+
