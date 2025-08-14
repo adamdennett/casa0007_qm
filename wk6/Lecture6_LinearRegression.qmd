@@ -13,7 +13,7 @@ format:
     template-partials: 
       - title-slide.html
     transition: none
-    slide-number: false
+    slide-number: TRUE
     preview-links: auto
     theme: casa-slides.scss
     
@@ -622,7 +622,7 @@ ggplot(england_filtered, aes(x = ATT8SCR)) +
 
 
 
-## Linear Regression
+## Linear Regression - It's just a scatter plot!
 
 
 ```{r}
@@ -706,7 +706,7 @@ ggplot(btn_sub, aes(x = PTFSM6CLA1A, y = ATT8SCR, color = SCHNAME.x)) +
 -   Dependent variable = $Y$-axis 
 -   Independent variable = $X$-axis
 
-## Linear Regression
+## Linear Regression - Line of Best-fit
 
 ```{r}
 #| out-width: "60%"
@@ -741,7 +741,7 @@ ggplot(btn_sub) +
 -   A linear model function `lm()` (in `R`) uses a method called ***Ordinary Least Squares (OLS)*** to find the line of best-fit.
 -   The best line minimises the squared (so that negatives and positives don't candel) vertical distances between the line and the points - hence OLS
 
-## Linear Regression
+## Linear Regression - Residuals / Error
 
 ```{r}
 #| out-width: "60%"
@@ -782,7 +782,7 @@ ggplot(btn_sub, aes(x = PTFSM6CLA1A, y = ATT8SCR)) +
 -   The vertical distances between the points and the line of best fit are called the **residuals** - sometimes also referred to as the **errors** or $\epsilon$
 -   The closer the points are to the line, the better the fit of the model
 
-## Linear Regression
+## Linear Regression - R-Squared
 
 ```{r}
 #| out-width: "60%"
@@ -825,7 +825,7 @@ ggplot(btn_sub, aes(x = PTFSM6CLA1A, y = ATT8SCR)) +
 -   The closer to 1, the better the fit of the model
 
 
-## Linear Regression
+## Linear Regression - Slope and Intercept
 
 ```{r}
 #| echo: false
@@ -872,7 +872,7 @@ ggplot(btn_sub, aes(x = PTFSM6CLA1A, y = ATT8SCR)) +
     -   The **intercept** - $\beta_0$ - which is the value of $Y$ when $X = 0$
     -   The **slope** - $\beta_1$ - which the change in the value of $Y$ for a 1 unit change in $X$
 
-## Linear Regression
+## Linear Regression - Model Estimates
 
 ```{r}
 #| echo: false
@@ -919,18 +919,18 @@ $$\hat{Y} = 62.35 + (-0.63 * X) + \epsilon$$
 $$49.75 = 62.35 + (-0.63 * 20) + 0$$
 
 
-## Linear Regression
+## Linear Regression - The Statistical Model
 
 ```{r}
-#| out-width: "60%"
+#| out-width: "40%"
+#| out-height: "50%"
 #| fig-align: "center"
 summary(lm_fit)
 ```
+-   Scatter plots are an excellent intuitive way to understand the relationship between two continuous variables
+-   Statistical software describes key plot features + other useful info
 
--   Scatter plots are an excellent (probably the best) way to understand the relationship between two continuous variables
--   But, statistical software will provide you with the key parameters that describe your scatter plot - plus some other useful additional information
-
-## Linear Regression
+## Linear Regression - Running the Model
 
 ![](images/the_Call.png)
 
@@ -942,6 +942,69 @@ summary(lm_fit)
     -   `data = bnt_sub` is the dataset we are using which contains the variables
     
 
+## Linear Regression - Residuals and Error
+
+![](images/the_resids.png)
+![](images/the_error.png)
+
+-   The residual errors range from -8.3 (Longhill) to + 4.7 (Varndean)
+-   The residual standard error of 4.087 means that, on average, the model's predictions for a school's Attainment 8 score are off by about 4.1 points
+-   Residual Standard Error (RSE) and $R^2$ are inversely related and both derived from the sum of the squared residual error (SSE)
+-   A smaller RSE and larger $R^2$ both mean a more precise model
+-   The F-Statistic is a ratio of the amount of variance explained by the model to the amount of variance not explained by the model - bigger the better
+
+## Linear Regression - Degrees of Freedom
+![](images/the_error.png)
+
+
+-   DF relates to the **Degrees of Freedom** in the model and is *very* important for understanding how reliable your $R^2$ value might be
+    -   The first number (1) relates to the number of variables
+    -   The second number (8) relates to the number of observations / cases in the dataset, minus the number of parameters 
+    -   In our example we have 10 observations and 2 parameters (intercept and slope) so 10 - 2 = 8 degrees of freedom
+    
+## Linear Regression - Degrees of Freedom
+    
+-   As a general rule: more degrees of freedom = more reliable model
+-   A model with many parameters vs observations will bend to fit those observations and not be a good generalisation - this is called ***overfitting***.
+-   A model with little freedom might *appear* to have a high $R^2$
+    -   but it is likely to perform poorly on new, unseen data 
+    -   **it has captured the characteristics of your specific dataset rather than the underlying truth**
+    
+## Linear Regression - Degrees of Freedom
+
+-   **How many Degrees of Freedom are required for a reliable model?**
+-   No single, universally agreed-upon number - aim to maintain a healthy ratio of observations to the number of parameters
+-   A common rule of thumb is the 10:1 ratio - **10 observations for every one parameter** - although this is a rough guide. If in doubt, even up to 20:1 to be safe
+-   In our example, we have 10 observations and 2 parameters, so 5:1 ratio - potentially an unreliable model
+
+## Linear Regression - Interpreting Coefficients 1
+![](images/the_coefs.png)
+
+-   The Estimate ($\beta$) 
+    -   intercept - estimated ATT8SCR when PTFSM6CLA1A is zero
+    -   effect of a one-unit change in the PTFSM6CLA1A on ATT8SCR - therefore sensitive to the units of the independent variable and not directly comparable across different variables if measured on different scales
+
+## Linear Regression - Interpreting Coefficients 2
+![](images/the_coefs.png)
+
+-   The Standard Error (SE) - measure of the uncertainty or precision of the estimate
+    -   Large SE relative to the Estimate = estimate unreliable / uncertain
+    -   SE of 0.15 for the estimate of -0.63 for PTFSM6CLA1A means the change in the value of Attainment 8 for a 1% change in disadvantaged students could vary between -0.48 and -0.78
+
+## Linear Regression - Interpreting Coefficients 3
+![](images/the_coefs.png)
+
+-   The t-value - ratio of the Estimate to the SE
+    -   a large standard error will make the t-value small (close to zero)
+    -   t-values can be thought of as a standardised coefficient - very useful for comparing the relative importance of different predictors in the model
+    -   The larger the t-value, the more significant the predictor is in explaining the variation in the dependent variable (more importance in your model)
+    
+## Linear Regression - Interpreting Coefficients 4
+![](images/the_coefs.png)
+
+-   The p-value - probability of observing a t-value as extreme as the one calculated if there were no relationship between the independent and the dependent variable
+-   A small p-value (typically < 0.05) indicates that the predictor is statistically significant in explaining the variation in the dependent variable
+-   The Signif. codes (like *** and **) are just a quick visual guide to this p-value, showing you at a glance which variables are significant.
 
 
 ## Regression Fundamentals {transition="convex-in none-out" transition-speed="fast"}
