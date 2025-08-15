@@ -53,11 +53,17 @@ library(readxl)
 library(tibble)
 library(ggrepel)
 library(gganimate)
+#library(easystats)
 
 #all england schools
 edubase_schools <- read_csv("https://www.dropbox.com/scl/fi/fhzafgt27v30lmmuo084y/edubasealldata20241003.csv?rlkey=uorw43s44hnw5k9js3z0ksuuq&raw=1") %>% 
   clean_names() %>% 
   mutate(urn = as.character(urn))
+
+#all england schools
+#edubase_schools <- read.csv("C:/Users/Adam/Dropbox/Public/edubasealldata20241003.csv") %>% 
+#  clean_names() %>% 
+#  mutate(urn = as.character(urn))
 
 england_abs <- read_csv(here("wk6", "data", "Performancetables_130242", "2022-2023", "england_abs.csv"), na = c("", "NA", "SUPP", "NP", "NE")) %>%
   mutate(URN = as.character(URN))
@@ -429,7 +435,7 @@ ggplot(england_school_2022_23, aes(x = ATT8SCR)) +
 
 ```
 
--  Hmmm? Are there any problems that could be indicated here?
+-   Hmmm? Are there any problems that could be indicated here?
 
 ## Step 1b - Ingredients (familiarisation) {transition="convex-in none-out" transition-speed="fast"}
 
@@ -549,6 +555,50 @@ ggplot(england_filtered, aes(x = ATT8SCR)) +
 
 ## Step 1c - Ingredients (selection) {transition="convex-in none-out" transition-speed="fast"}
 
+```{r}
+#| label: attainment-8-histogram3
+#| fig.width: 8
+#| fig.height: 5
+#| fig.align: "center"
+
+library(ggplot2)
+library(dplyr)
+
+# Filter data
+england_filtered <- england_school_2022_23 %>%
+  filter(!MINORGROUP %in% c("Special school", "Independent school", "College", NA))
+
+# Recalculate stats for filtered data
+median_value <- median(england_filtered$PTFSM6CLA1A, na.rm = TRUE)
+mean_value   <- mean(england_filtered$PTFSM6CLA1A, na.rm = TRUE)
+sd_value   <- sd(england_filtered$PTFSM6CLA1A, na.rm = TRUE)
+
+ggplot(england_filtered, aes(x = PTFSM6CLA1A)) +
+  geom_histogram(aes(y = ..density..), binwidth = 1, fill = "#4E3C56", alpha = 0.4) +
+  stat_function(fun = dnorm, args = list(mean = mean_value, sd = sd_value),
+                color = "#2E6260", size = 1) +
+  geom_vline(xintercept = median_value, colour = "black", linetype = "dotted", size = 1) +
+  geom_vline(xintercept = mean_value, colour = "#F9DD73", linetype = "solid", size = 1) +
+  annotate("text",
+           x = median_value, y = Inf,
+           label = paste0("Median = ", round(median_value, 1)),
+           vjust = 1.3, colour = "black", size = 3.5) +
+  annotate("text",
+           x = mean_value, y = Inf,
+           label = paste0("Mean = ", round(mean_value, 1)),
+           vjust = 30.5, colour = "#F9DD73", size = 3.5) +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.08))) +
+  labs(
+    title = "% Disadvantaged Students - Academy and Maintained Schools 2022/23 Academic Year",
+    x = "% Disadvantaged",
+    y = "Density"
+  ) +
+  theme_minimal()
+```
+
+
+## Step 1c - Ingredients (selection) {transition="convex-in none-out" transition-speed="fast"}
+
 -   The process of exploring and interrogating your data should take much longer than the modelling at the end
 -   The process is iterative - you might well be exploring your data and the theory ***at the same time*** to help you explore, filter, select and prepare for the modelling phase
 -   Understanding your 'system' and what the key elements are is vital.
@@ -620,10 +670,7 @@ ggplot(england_filtered, aes(x = ATT8SCR)) +
 -   ***Independent variables*** - explanatory / predictor variables of varying data types to explain variation in the dependent variable
 -   As such ***Linear Regression*** is the most appropriate statistical test to employ
 
-
-
 ## Linear Regression - It's just a scatter plot!
-
 
 ```{r}
 #| warning: FALSE
@@ -703,7 +750,7 @@ ggplot(btn_sub, aes(x = PTFSM6CLA1A, y = ATT8SCR, color = SCHNAME.x)) +
 ```
 
 -   **A regression model is nothing more than a description of a scatter plot**
--   Dependent variable = $Y$-axis 
+-   Dependent variable = $Y$-axis
 -   Independent variable = $X$-axis
 
 ## Linear Regression - Line of Best-fit
@@ -737,7 +784,7 @@ ggplot(btn_sub) +
   theme_minimal()
 ```
 
--   The linear regression model is the straight line of best-fit 
+-   The linear regression model is the straight line of best-fit
 -   A linear model function `lm()` (in `R`) uses a method called ***Ordinary Least Squares (OLS)*** to find the line of best-fit.
 -   The best line minimises the squared (so that negatives and positives don't candel) vertical distances between the line and the points - hence OLS
 
@@ -824,7 +871,6 @@ ggplot(btn_sub, aes(x = PTFSM6CLA1A, y = ATT8SCR)) +
 -   It describes how much of the variation in $Y$ (Attainment 8 score) is explained by the variation in $X$ (% Disadvantaged Students) - here 69%
 -   The closer to 1, the better the fit of the model
 
-
 ## Linear Regression - Slope and Intercept
 
 ```{r}
@@ -906,6 +952,7 @@ ggplot(btn_sub, aes(x = PTFSM6CLA1A, y = ATT8SCR)) +
   annotate("text", x = max(btn_sub$PTFSM6CLA1A, na.rm = TRUE), 
            y = min(btn_sub$ATT8SCR, na.rm = TRUE), 
            label = annotation_text, hjust = 1, vjust = -15, size = 4, color = "#4E3C56") +
+  geom_point(aes(x = 35, y = 40.3), color = "#e16fca", size = 4) +  # Red dot added here
   labs(title = "Brighton and Hove Schools - Attainment 8 vs % Disadvantaged Students, 2022-23",
        x = "% Disadvantaged Students",
        y = "Average Attainment 8 Score") +
@@ -913,11 +960,10 @@ ggplot(btn_sub, aes(x = PTFSM6CLA1A, y = ATT8SCR)) +
   ylim(min(30), 65) +
   theme_minimal()
 
-```
-$$Y = \beta_0 + \beta_1X_1 + \epsilon$$
-$$\hat{Y} = 62.35 + (-0.63 * X) + \epsilon$$
-$$49.75 = 62.35 + (-0.63 * 20) + 0$$
 
+```
+
+$$Y = \beta_0 + \beta_1X_1 + \epsilon$$ $$\hat{Y} = 62.35 + (-0.63 \times X) + \epsilon$$ [$$40.3 = 62.35 + (-0.63 \times 35) + 0$$]{style="color:#e16fca"}
 
 ## Linear Regression - The Statistical Model
 
@@ -927,6 +973,7 @@ $$49.75 = 62.35 + (-0.63 * 20) + 0$$
 #| fig-align: "center"
 summary(lm_fit)
 ```
+
 -   Scatter plots are an excellent intuitive way to understand the relationship between two continuous variables
 -   Statistical software describes key plot features + other useful info
 
@@ -940,79 +987,474 @@ summary(lm_fit)
     -   `~` means "is modelled by"
     -   `PTFSM6CLA1A` (% Disadvantaged Students) is the independent variable $X$
     -   `data = bnt_sub` is the dataset we are using which contains the variables
-    
 
 ## Linear Regression - Residuals and Error
 
-![](images/the_resids.png)
-![](images/the_error.png)
+![](images/the_resids.png) ![](images/the_error.png)
 
 -   The residual errors range from -8.3 (Longhill) to + 4.7 (Varndean)
--   The residual standard error of 4.087 means that, on average, the model's predictions for a school's Attainment 8 score are off by about 4.1 points
--   Residual Standard Error (RSE) and $R^2$ are inversely related and both derived from the sum of the squared residual error (SSE)
--   A smaller RSE and larger $R^2$ both mean a more precise model
--   The F-Statistic is a ratio of the amount of variance explained by the model to the amount of variance not explained by the model - bigger the better
+-   The residual standard error of 4.087 = predictions for School's Attainment 8 score are off by about 4.1 points
+-   Residual Standard Error (RSE) and $R^2$ are inversely related - A smaller RSE and larger $R^2$ both mean a more precise model
+-   Both derived from the sum of the squared residual error (SSE)
+-   The F-Statistic is a ratio of the amount of variance explained by the model to the amount of variance not explained by the model - overall p-value <0.05 = the model is statistically significant
 
 ## Linear Regression - Degrees of Freedom
+
 ![](images/the_error.png)
 
-
--   DF relates to the **Degrees of Freedom** in the model and is *very* important for understanding how reliable your $R^2$ value might be
+-   DF are the ***Degrees of Freedom*** in the model. DF ***very*** important for understanding how reliable your $R^2$ value might be
     -   The first number (1) relates to the number of variables
-    -   The second number (8) relates to the number of observations / cases in the dataset, minus the number of parameters 
-    -   In our example we have 10 observations and 2 parameters (intercept and slope) so 10 - 2 = 8 degrees of freedom
-    
+    -   The second number (8) relates to the number of observations (cases) in the dataset, minus the number of parameters
+    -   In our example we have 10 observations and 2 parameters (intercept and slope) so $10 - 2 = 8$ degrees of freedom
+
 ## Linear Regression - Degrees of Freedom
-    
--   As a general rule: more degrees of freedom = more reliable model
--   A model with many parameters vs observations will bend to fit those observations and not be a good generalisation - this is called ***overfitting***.
+
+-   **General rule**: *more degrees of freedom = more reliable model*
+-   A model with many parameters vs observations will bend to fit those observations and not be a good generalisation - this is called ***overfitting***
 -   A model with little freedom might *appear* to have a high $R^2$
-    -   but it is likely to perform poorly on new, unseen data 
-    -   **it has captured the characteristics of your specific dataset rather than the underlying truth**
-    
+    -   but it is likely to perform poorly on new, unseen data
+    -   it has captured the characteristics of your specific dataset rather than an underlying truth
+
 ## Linear Regression - Degrees of Freedom
 
 -   **How many Degrees of Freedom are required for a reliable model?**
 -   No single, universally agreed-upon number - aim to maintain a healthy ratio of observations to the number of parameters
--   A common rule of thumb is the 10:1 ratio - **10 observations for every one parameter** - although this is a rough guide. If in doubt, even up to 20:1 to be safe
--   In our example, we have 10 observations and 2 parameters, so 5:1 ratio - potentially an unreliable model
+-   A common rule of thumb is the 10:1 ratio - **10 observations for every 1 parameter** - although this is a rough guide. If in doubt, even up to 20:1 to be safe
+-   In our example, we have 10 observations and 2 parameters = 5:1 ratio = potentially unreliable model
 
-## Linear Regression - Interpreting Coefficients 1
+## Linear Regression - Coefficients 1
+
 ![](images/the_coefs.png)
 
--   The Estimate ($\beta$) 
-    -   intercept - estimated ATT8SCR when PTFSM6CLA1A is zero
-    -   effect of a one-unit change in the PTFSM6CLA1A on ATT8SCR - therefore sensitive to the units of the independent variable and not directly comparable across different variables if measured on different scales
+-   The Estimates ($\beta$)
+    -   Intercept - estimated Attainment 8 when % Disadvantaged Children in a school is zero
+    -   PTFSM6CLA1A - effect of a one-unit change in the % Disadvantaged Children on Attainment 8 - therefore linked to the units of the independent variable and not directly comparable across different variables if measured on different scales
 
-## Linear Regression - Interpreting Coefficients 2
+## Linear Regression - Coefficients 2
+
 ![](images/the_coefs.png)
 
 -   The Standard Error (SE) - measure of the uncertainty or precision of the estimate
     -   Large SE relative to the Estimate = estimate unreliable / uncertain
     -   SE of 0.15 for the estimate of -0.63 for PTFSM6CLA1A means the change in the value of Attainment 8 for a 1% change in disadvantaged students could vary between -0.48 and -0.78
 
-## Linear Regression - Interpreting Coefficients 3
+## Linear Regression - Coefficients 3
+
 ![](images/the_coefs.png)
 
 -   The t-value - ratio of the Estimate to the SE
     -   a large standard error will make the t-value small (close to zero)
     -   t-values can be thought of as a standardised coefficient - very useful for comparing the relative importance of different predictors in the model
     -   The larger the t-value, the more significant the predictor is in explaining the variation in the dependent variable (more importance in your model)
-    
-## Linear Regression - Interpreting Coefficients 4
+
+## Linear Regression - Coefficients 4
+
 ![](images/the_coefs.png)
 
--   The p-value - probability of observing a t-value as extreme as the one calculated if there were no relationship between the independent and the dependent variable
--   A small p-value (typically < 0.05) indicates that the predictor is statistically significant in explaining the variation in the dependent variable
--   The Signif. codes (like *** and **) are just a quick visual guide to this p-value, showing you at a glance which variables are significant.
+-   The p-value - **p**robability of observing a t-value as extreme as the one calculated if there were no relationship between the independent and the dependent variable
+-   A small p-value (typically \< 0.05) indicates that the predictor is statistically significant in explaining the variation in the dependent variable
+-   The Signif. codes (like \*\*\* and \*\*) are just a quick visual guide to this p-value, showing you at a glance which variables are significant.
+-   Any parameter with 1, 2 or 3\* is "statistically significant" at 5% or better
+
+## Linear Regression - Coefficients 4
+
+![](images/the_coefs.png)
+
+-   The p-values relate to the null hypotheses that:
+    -   The true value of the intercept is zero when the independent variable is zero. P \<0.001 = \<0.1% probability that 62.3 occured by random chance
+        -   It doesn't tell us that when % Disadvantaged is zero, 62.3 will be a correct Attainment 8 score, just real value is unlikely to be zero
+    -   The true value of the PTFSM6CLA1A slope (relationship between % Disadvantaged and Attainment 8) is 0. P \< 0.01 = \<1% probability that the relationship observed is by chance. Relationship is likely to be real.
+
+## Linear Regression - Summary so far
+
+::::: columns
+::: {.column width="60%"}
+1.  Variation in % disadvantaged students in schools in Brighton appears to explain about 65-68% of the variation in Attainment 8 at the school level
+
+2.  The % disadvantaged students is a statistically significant predictor and the relationship appears to be linear
+
+3.  A 1% reduction in the number of disadvantaged students in a school appears to be associated with a 0.62 point increase in Attainment 8, and vice versa
+
+    **So the council was right? Well, not quite...**
+
+:::
+
+::: {.column width="40%"}
+```{r}
+ggplot(btn_sub, aes(x = PTFSM6CLA1A, y = ATT8SCR)) +
+  geom_point() +
+  geom_abline(intercept = coef(lm_fit)[1], slope = coef(lm_fit)[2], color = "#8F5289") +
+  geom_segment(aes(xend = PTFSM6CLA1A, yend = predicted),
+               linetype = "dotted", color = "grey50") +
+  annotate("text", x = max(btn_sub$PTFSM6CLA1A, na.rm = TRUE), 
+           y = min(btn_sub$ATT8SCR, na.rm = TRUE), 
+           label = annotation_text, hjust = 1, vjust = -15, size = 4, color = "#4E3C56") +
+  labs(title = "Brighton and Hove Schools - Attainment 8 vs % Disadvantaged Students, 2022-23",
+       x = "% Disadvantaged Students",
+       y = "Average Attainment 8 Score") +
+  xlim(0, max(50)) +
+  ylim(min(30), 65) +
+  theme_minimal()
+```
+:::
+:::::
+
+## Linear Regression - Summary so far
+
+::::: columns
+::: {.column width="60%"}
+
+4.  The degrees of freedom in the model are small, so model likely to be overfitted and unreliable for generalisation
+
+-   Small numbers of observations (schools in the city) mean that the model is highly sensitive to changes in the data
+-   It's also unclear whether there are any other factors that might be correlated with disadvantaged students that might also be influencing Attainment 8 scores and ***confounding*** the apparent relationship we observe
+-   ***What are the practical consequences of overfitting?***
+
+:::
+
+::: {.column width="40%"}
+```{r}
+ggplot(btn_sub, aes(x = PTFSM6CLA1A, y = ATT8SCR)) +
+  geom_point() +
+  geom_abline(intercept = coef(lm_fit)[1], slope = coef(lm_fit)[2], color = "#8F5289") +
+  geom_segment(aes(xend = PTFSM6CLA1A, yend = predicted),
+               linetype = "dotted", color = "grey50") +
+  annotate("text", x = max(btn_sub$PTFSM6CLA1A, na.rm = TRUE), 
+           y = min(btn_sub$ATT8SCR, na.rm = TRUE), 
+           label = annotation_text, hjust = 1, vjust = -15, size = 4, color = "#4E3C56") +
+  labs(title = "Brighton and Hove Schools - Attainment 8 vs % Disadvantaged Students, 2022-23",
+       x = "% Disadvantaged Students",
+       y = "Average Attainment 8 Score") +
+  xlim(0, max(50)) +
+  ylim(min(30), 65) +
+  theme_minimal()
+```
+:::
+:::::
+
+## Linear Regression - Overfitting, Outliers and High Leverage Points
+-   When we overfit, the model can be overly influenced by ***outliers*** (large residuals) and changes in key ***leverage points*** (points that are far from the mean of the independent variable)
+-   What happens to our model if a school improvement plan brings the outlier (Longhill) closer to attainment at Hove Park?
+-   Council makes Varndean increase its disadvantaged intake to 30%?
+-   And BACA improves its Attainment 8 to the city average following a huge cash injection from its academy trust?
+
+## Linear Regression - Overfitting, Outliers and High Leverage Points
+
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+#| fig-align: center
+#| out-width: 40%
+
+btn_edit <- btn_sub %>%
+  mutate(ATT8SCR = ifelse(SCHNAME.x == "Longhill High School", 46, ATT8SCR),
+         ATT8SCR = ifelse(SCHNAME.x == "Brighton Aldridge Community Academy", 46, ATT8SCR),
+         PTFSM6CLA1A = ifelse(SCHNAME.x == "Varndean School", 30, PTFSM6CLA1A))
+
+# Fit linear model and get predicted values
+lm_edit <- lm(ATT8SCR ~ PTFSM6CLA1A, data = btn_edit)
+btn_edit <- btn_edit %>%
+  mutate(predicted = predict(lm_edit),
+         residual = ATT8SCR - predicted)
+
+annotation_edit <- paste0("y = ", round(coef(lm_edit)[1], 2), " + ", round(coef(lm_edit)[2], 2), "x")
+
+ggplot(btn_edit, aes(x = PTFSM6CLA1A, y = ATT8SCR)) +
+  geom_point() +
+  geom_abline(intercept = coef(lm_edit)[1], slope = coef(lm_edit)[2], color = "#8F5289") +
+  geom_segment(aes(xend = PTFSM6CLA1A, yend = predicted),
+               linetype = "dotted", color = "grey50") +
+  annotate("text", x = max(btn_edit$PTFSM6CLA1A, na.rm = TRUE), 
+           y = min(btn_edit$ATT8SCR, na.rm = TRUE), 
+           label = annotation_edit, hjust = 1, vjust = -10, size = 4, color = "#4E3C56") +
+  labs(title = "Brighton and Hove Schools - Attainment 8 vs % Disadvantaged Students, 2022-23",
+       x = "% Disadvantaged Students",
+       y = "Average Attainment 8 Score") +
+  xlim(0, max(50)) +
+  ylim(min(30), 65) +
+  theme_minimal()
+```
+
+-   Plausible changes to three schools have almost completely removed relationship between % Disadvantaged Students & Attainment 8
+-   Overfitting -> parameters highly sensitive to minor changes to a few key data points
+-   The closer the best-fit line gets to horizontal, the closer we get to **NO RELATIONSHIP** between the independent and dependent variables
+
+## Linear Regression - Overfitting, Outliers and High Leverage Points
+
+```{r}
+summary(lm_edit)
+```
+-   Overall p-value of model now **statistically insignificant** >0.1
+-   % Disadvantage in Schools now **statistically insignificant**
+
+## Linear Regression - More Degrees of Freedom
+
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+#| fig-align: center
+#| out-width: 60%
+
+# Fit model
+lm_fit <- lm(ATT8SCR ~ PTFSM6CLA1A, data = england_filtered)
+
+# Extract coefficients
+slope <- round(coef(lm_fit)[2], 2)
+intercept <- round(coef(lm_fit)[1], 2)
+
+# Extract R²
+r_squared <- round(summary(lm_fit)$r.squared, 2)
+
+# Create annotation text
+annotation_text <- paste0("y = ", intercept, " + ", slope, "x\nR² = ", r_squared)
+
+# Plot with annotation
+ggplot(england_filtered) +
+  geom_point(aes(x = PTFSM6CLA1A, y = ATT8SCR), alpha = 0.6) +  # Base layer: all schools
+  geom_point(data = btn_sub, aes(x = PTFSM6CLA1A, y = ATT8SCR), 
+             color = "#F9DD73", size = 2.5) +  # Overlay: Brighton & Hove schools
+  geom_smooth(aes(x = PTFSM6CLA1A, y = ATT8SCR), method = "lm", 
+              se = FALSE, color = "#8F5289") +
+  annotate("text", x = max(england_filtered$PTFSM6CLA1A, na.rm = TRUE), 
+           y = min(england_filtered$ATT8SCR, na.rm = TRUE), 
+           label = annotation_text, hjust = 2, vjust = -7, size = 4, color = "#4E3C56") +
+  labs(title = "England and Wales Schools - Attainment 8 vs % Disadvantaged Students, 2022-23",
+       x = "% Disadvantaged Students",
+       y = "Average Attainment 8 Score") +
+  theme_minimal()
+```
+-   Now we have a model that includes all schools in England and Wales
+-   Negative association present - appears to confirm Gorard observation
+-   R-Squared is reasonable - 33% of the variation explained
+
+## Linear Regression - More Degrees of Freedom
+
+```{r}
+summary(lm_fit)
+
+```
+-   We now have 3248 degrees of freedom 
+-   Intercept and % Disadvantaged Students both highly significant
+-   Life is good? Wrong... Houston, we have some more problems!!
+
+## Linear Regression - Other Regression Assumptions
+
+-   I forgot to mention - there are another set of rules to follow to ensure our linear regression is reliable:
+    -   **Linearity**: The relationship between the independent and dependent variables is linear
+    -   **Homoscedasticity**: Constant variance of residuals across all levels of the independent variable
+    -   **Normality of residuals**: Residuals are normally distributed
+    -   **No multicollinearity**: Independent variables are not highly correlated
+    -   **Independence of residuals**: Errors are not related to each other with each other
 
 
-## Regression Fundamentals {transition="convex-in none-out" transition-speed="fast"}
+## Linear Regression - Linearity?
 
--   Regression is a statistical method used to understand the relationship between one or more independent variables (predictors) and a dependent variable (outcome)
--   Even more simply the dependent variable is the thing you want to predict, and the independent variables are the things you think might influence that prediction
--   The simplest form is **linear regression**, which assumes a linear relationship between the independent and dependent variables
--   In a simple linear regression the dependent variable is measured on a continuous scale - in our case this might the average Attainment 8 scores for all schools in England and Wales
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+#| fig-align: center
+#| out-width: 60%
+
+# Fit model
+lm_fit <- lm(ATT8SCR ~ PTFSM6CLA1A, data = england_filtered)
+
+# Extract coefficients
+slope <- round(coef(lm_fit)[2], 2)
+intercept <- round(coef(lm_fit)[1], 2)
+
+# Extract R²
+r_squared <- round(summary(lm_fit)$r.squared, 2)
+
+# Create annotation text
+annotation_text <- paste0("y = ", intercept, " + ", slope, "x\nR² = ", r_squared)
+
+# Plot with annotation
+ggplot(england_filtered) +
+  geom_point(aes(x = PTFSM6CLA1A, y = ATT8SCR), alpha = 0.6) +  # Base layer: all schools
+  geom_point(data = btn_sub, aes(x = PTFSM6CLA1A, y = ATT8SCR), 
+             color = "#F9DD73", size = 2.5) +  # Overlay: Brighton & Hove schools
+  geom_smooth(aes(x = PTFSM6CLA1A, y = ATT8SCR), method = "lm", 
+              se = FALSE, color = "#8F5289") +
+  annotate("text", x = max(england_filtered$PTFSM6CLA1A, na.rm = TRUE), 
+           y = min(england_filtered$ATT8SCR, na.rm = TRUE), 
+           label = annotation_text, hjust = 2, vjust = -7, size = 4, color = "#4E3C56") +
+  labs(title = "England and Wales Schools - Attainment 8 vs % Disadvantaged Students, 2022-23",
+       x = "% Disadvantaged Students",
+       y = "Average Attainment 8 Score") +
+  theme_minimal()
+```
+
+-   Some suggestion of non-linearity with big up-tick at the low end of disadvantage 
+
+## Linear Regression - Linearity?
+
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+#| fig-align: center
+#| out-width: 70%
+
+library(performance)
+
+check_model(lm_fit, 
+            check = c("linearity"))
+```
+
+-   Ploting the residuals against the fitted values is one check for linearity
+-   The residuals should be randomly scattered around zero - if they are not, it suggests a non-linear relationship
+-   The reference line should be horizontal at zero
+
+## Linear Regression - Homoscedasticity (Constant variance)?
+
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+#| fig-align: center
+#| out-width: 70%
+
+library(performance)
+
+check_model(lm_fit, 
+            check = c("homogeneity"))
+```
+
+-   Issues here too - the residuals are not randomly scattered around zero
+
+## Linear Regression - Normality of Residuals?
+
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+#| fig-align: center
+#| out-width: 70%
+
+library(performance)
+
+check_model(lm_fit, 
+            check = c("qq"))
+```
+-   A number of points not on the line - suggesting the residuals are not normally distributed
+-   A significant deviation from a normal distribution could mean that the p-values are not trustworthy
+
+## Linear Regression - Outliers?
+
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+#| fig-align: center
+#| out-width: 70%
+
+library(performance)
+
+check_model(lm_fit, 
+            check = c("outliers"))
+```
+
+-   At least we don't have any problems with outliers!
+
+## Linear Regression - Diagnostics
+-   **Linearity**: Failed
+-   **Homoscedasticity**: Failed
+-   **Normality of residuals**: Failed
+-   **No multicollinearity**: Something for later
+-   **Independence of residuals**: Something for later
+-   Presently our model violates most of the key assumptions that underpin linear regression models. What this means is that in its current form, the relationship between % Disadvantaged Students and Attainment 8 described by the model is not reliable
+
+## Linear Regression - Dealing with Non-Linearity
+
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+#| fig-align: center
+#| out-width: 60%
+
+england_filtered <- england_filtered %>%
+  filter(PTFSM6CLA1A > 0, ATT8SCR > 0)
+england_filtered <- england_filtered %>%
+  mutate(log_att8 = log(ATT8SCR),
+         log_ptfsm = log(PTFSM6CLA1A))
+
+btn_sub <- btn_sub %>%
+  mutate(log_att8 = log(ATT8SCR),
+         log_ptfsm = log(PTFSM6CLA1A))
+
+# Fit model
+lm_fit <- lm(log(ATT8SCR) ~ log(PTFSM6CLA1A), data = england_filtered)
+
+# Extract coefficients
+slope <- round(coef(lm_fit)[2], 2)
+intercept <- round(coef(lm_fit)[1], 2)
+
+# Extract R²
+r_squared <- round(summary(lm_fit)$r.squared, 2)
+
+# Create annotation text
+annotation_text <- paste0("y = ", intercept, " + ", slope, "x\nR² = ", r_squared)
+
+# Plot with annotation
+ggplot(england_filtered) +
+  geom_point(aes(x = log_ptfsm, y = log_att8, alpha = 0.6)) +  # Base layer: all schools
+  geom_point(data = btn_sub, aes(x = log_ptfsm, y = log_att8), 
+             color = "#F9DD73", size = 2.5) +  # Overlay: Brighton & Hove schools
+  geom_smooth(aes(x = log_ptfsm, y = log_att8), method = "lm", 
+              se = FALSE, color = "#8F5289") +
+  annotate("text", x = max(england_filtered$log_ptfsm, na.rm = TRUE), 
+           y = min(england_filtered$log_att8, na.rm = TRUE), 
+           label = annotation_text, hjust = 2, vjust = -7, size = 4, color = "#4E3C56") +
+  labs(title = "England and Wales Schools - Attainment 8 vs % Disadvantaged Students, 2022-23",
+       x = "log(% Disadvantaged Students)",
+       y = "log(Average Attainment 8 Score)") +
+  theme_minimal()
+```
+
+-   The log() log() model is a standard transformation that can help to linearise relationships that are not linear
+
+## Linear Regression - the Log Log transform
+
+```{r}
+summary(lm_fit)
+```
+## Linear Regression - the Log Log transform
+
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+#| fig-align: center
+#| out-width: 70%
+
+library(performance)
+
+check_model(lm_fit, 
+            check = c("linearity"))
+```
+## Linear Regression - the Log Log transform
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+#| fig-align: center
+#| out-width: 70%
+
+library(performance)
+
+check_model(lm_fit, 
+            check = c("qq"))
+```
+
+## Linear Regression - the Log Log transform
+
+-   The log-log transformation has helped to linearise the relationship between % Disadvantaged Students and Attainment 8
+-   The log-log model means that while we now have a linear model, the effect on Attainment 8 changes depending on the level of % Disadvantaged Students
+-   We can see from our original plot that the effect of levels of disadvantage on attainment is much stronger at very low levels of disadvantage and weakens as the level of disadvantage increases
 
 ## Regression Maths
 
