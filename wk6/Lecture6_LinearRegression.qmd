@@ -1226,7 +1226,7 @@ ggplot(england_filtered) +
   theme_minimal()
 ```
 -   Now we have a model that includes all schools in England and Wales
--   Negative association present - appears to confirm Gorard observation
+-   Negative association present - appears to confirm Gorard's observation
 -   R-Squared is reasonable - 33% of the variation explained
 
 ## Linear Regression - More Degrees of Freedom
@@ -1237,7 +1237,7 @@ summary(lm_fit)
 ```
 -   We now have 3248 degrees of freedom 
 -   Intercept and % Disadvantaged Students both highly significant
--   Life is good? Wrong... Houston, we have some more problems!!
+-   Life is good? ***Wrong... Houston, we have some more problems!!***
 
 ## Linear Regression - Other Regression Assumptions
 
@@ -1286,8 +1286,8 @@ ggplot(england_filtered) +
        y = "Average Attainment 8 Score") +
   theme_minimal()
 ```
-
--   Some suggestion of non-linearity with big up-tick at the low end of disadvantage 
+-   Linearity - Does your line go through all the points nicely?
+-   Hmmmm - suggestion of non-linearity with big up-tick at the low end of disadvantage 
 
 ## Linear Regression - Linearity?
 
@@ -1322,8 +1322,7 @@ library(performance)
 check_model(lm_fit, 
             check = c("homogeneity"))
 ```
-
--   Issues here too - the residuals are not randomly scattered around zero
+-   Issues here too: the residuals are not randomly scattered around zero
 
 ## Linear Regression - Normality of Residuals?
 
@@ -1339,8 +1338,9 @@ library(performance)
 check_model(lm_fit, 
             check = c("qq"))
 ```
+-   This is known as a **Q-Q plot** (Quantile-Quantile plot)
 -   A number of points not on the line - suggesting the residuals are not normally distributed
--   A significant deviation from a normal distribution could mean that the p-values are not trustworthy
+-   Many points off line could mean untrustworthy p-values 
 
 ## Linear Regression - Outliers?
 
@@ -1408,21 +1408,26 @@ ggplot(england_filtered) +
               se = FALSE, color = "#8F5289") +
   annotate("text", x = max(england_filtered$log_ptfsm, na.rm = TRUE), 
            y = min(england_filtered$log_att8, na.rm = TRUE), 
-           label = annotation_text, hjust = 2, vjust = -7, size = 4, color = "#4E3C56") +
+           label = annotation_text, hjust = 3, vjust = -2, size = 4, color = "#4E3C56") +
   labs(title = "England and Wales Schools - Attainment 8 vs % Disadvantaged Students, 2022-23",
        x = "log(% Disadvantaged Students)",
        y = "log(Average Attainment 8 Score)") +
   theme_minimal()
 ```
 
--   The log() log() model is a standard transformation that can help to linearise relationships that are not linear
+-   The log($Y$) log($X$) model is a standard transformation of these variables that can help to linearise relationships 
+-   Sometimes referred to as an *elasticity* model, a % (rather than constant) change in $X$ leads to a % (not constant) change in $Y$
 
-## Linear Regression - the Log Log transform
+
+## Linear Regression - the log-log transformation
 
 ```{r}
 summary(lm_fit)
 ```
-## Linear Regression - the Log Log transform
+-   Everything now looks highly statistically significant
+-   $R^2$ is much better - 45%
+
+## Linear Regression - the log-log transformation
 
 ```{r}
 #| echo: false
@@ -1436,7 +1441,10 @@ library(performance)
 check_model(lm_fit, 
             check = c("linearity"))
 ```
-## Linear Regression - the Log Log transform
+
+-   The residuals are now randomly scattered around zero - suggesting a linear relationship
+
+## Linear Regression - the log-log transformation
 ```{r}
 #| echo: false
 #| message: false
@@ -1450,11 +1458,106 @@ check_model(lm_fit,
             check = c("qq"))
 ```
 
-## Linear Regression - the Log Log transform
+-   The residuals are now normally distributed - the Q-Q plot shows most points on the line
 
--   The log-log transformation has helped to linearise the relationship between % Disadvantaged Students and Attainment 8
--   The log-log model means that while we now have a linear model, the effect on Attainment 8 changes depending on the level of % Disadvantaged Students
--   We can see from our original plot that the effect of levels of disadvantage on attainment is much stronger at very low levels of disadvantage and weakens as the level of disadvantage increases
+## Linear Regression - the log-log transformation
+
+-   Interpreting the log-log relationship:
+    -   Where the relationship is negative, a small absolute change in the independent variable at the *lower* end has a *bigger* impact than the same small absolute change at the higher end 
+    -   On our original plot that the effect of levels of disadvantage on attainment is much stronger at very low levels of disadvantage and weakens as the level of disadvantage increases
+
+## Linear Regression - Level-log model
+
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+#| fig-align: center
+#| out-width: 60%
+
+england_filtered <- england_filtered %>%
+  filter(PTFSM6CLA1A > 0, ATT8SCR > 0)
+england_filtered <- england_filtered %>%
+  mutate(log_att8 = log(ATT8SCR),
+         log_ptfsm = log(PTFSM6CLA1A))
+
+btn_sub <- btn_sub %>%
+  mutate(log_att8 = log(ATT8SCR),
+         log_ptfsm = log(PTFSM6CLA1A))
+
+# Fit model
+lm_fit <- lm(ATT8SCR ~ log(PTFSM6CLA1A), data = england_filtered)
+
+# Extract coefficients
+slope <- round(coef(lm_fit)[2], 2)
+intercept <- round(coef(lm_fit)[1], 2)
+
+# Extract R²
+r_squared <- round(summary(lm_fit)$r.squared, 2)
+
+# Create annotation text
+annotation_text <- paste0("y = ", intercept, " + ", slope, "x\nR² = ", r_squared)
+
+# Plot with annotation
+ggplot(england_filtered) +
+  geom_point(aes(x = log_ptfsm, y = ATT8SCR, alpha = 0.6)) +  # Base layer: all schools
+  geom_point(data = btn_sub, aes(x = log_ptfsm, y = ATT8SCR), 
+             color = "#F9DD73", size = 2.5) +  # Overlay: Brighton & Hove schools
+  geom_smooth(aes(x = log_ptfsm, y = ATT8SCR), method = "lm", 
+              se = FALSE, color = "#8F5289") +
+  annotate("text", x = max(england_filtered$log_ptfsm, na.rm = TRUE), 
+           y = min(england_filtered$ATT8SCR, na.rm = TRUE), 
+           label = annotation_text, hjust = 4, vjust = -2, size = 4, color = "#4E3C56") +
+  labs(title = "England and Wales Schools - Attainment 8 vs % Disadvantaged Students, 2022-23",
+       x = "log(% Disadvantaged Students)",
+       y = "Average Attainment 8 Score") +
+  theme_minimal()
+```
+
+-   Other options are to use a ***level-log*** model, where the dependent variable is not transformed but the independent variable is log-transformed. 
+-   Use when the effect of the independent variable has diminishing returns. 
+    -   e.g. a change from 10 to 11 has a larger effect than a change from 100 to 101. Common with variables like income or population size
+
+
+## Linear Regression - Level-log model
+
+```{r}
+summary(lm_fit)
+```
+
+## Linear Regression - Level-log model
+
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+#| fig-align: center
+#| out-width: 70%
+
+library(performance)
+
+check_model(lm_fit, 
+            check = c("linearity"))
+```
+## Linear Regression - Level-log model
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+#| fig-align: center
+#| out-width: 70%
+
+library(performance)
+
+check_model(lm_fit, 
+            check = c("qq"))
+```
+
+## Interpretation for Brighton and Hove
+
+
+
+
 
 ## Regression Maths
 
