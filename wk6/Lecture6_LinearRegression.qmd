@@ -1,6 +1,6 @@
 ---
-title: "Introduction to Applied Linear Regression"
-subtitle: "One model to rule them all!"
+title: "Prof D's Applied Linear Regression Bootcamp"
+subtitle: "'WHY?! Why Us? Did we wrong him in a past life?'"
 author: 
   - name: "Adam Dennett"
 email: "a.dennett@ucl.ac.uk"
@@ -186,12 +186,18 @@ knitr::opts_chunk$set(dev = "ragg_png")
 }
 ```
 
-By the end of this session, we will understand:
+"This much content in one session?!? Are you mad?":
 
--   linear Regression and why it is perhaps *THE* most useful tool in your statistical toolbox - but only if used correctly
--   how correct use depends mainly on:
-    -   understanding the features of your data - sample size, the variables and groups within your data, multicolinearity, heteroscedascity, kurtosis, variance, degrees of freedom, interaction effects (and what all of these words mean!)
-    -   how a model and the variables you put into that model should always be informed by a sound theoretical understanding
+-   Possibly - But I've marked too many dissertations and examined too many PhDs where people still get the basics wrong and this should help fix that!
+-   I've been using this method for 20 years and I **still** get things wrong and I'm *still* learning new things about it!
+-   Once you get the basics, it is perhaps *THE* most useful tool in your statistical toolbox
+-   Forget about machine learning - regression is your statistical Swiss Army knife!
+
+## This week's Session {transition="convex-in none-out" transition-speed="fast"}
+
+-   Getting the basics right and how this depends on:
+    -   understanding the features of your data and your model - sample size, the variables and groups within your data, multicolinearity, heteroscedascity, kurtosis, variance, degrees of freedom, confounding, interaction effects (and what all of these words mean!)
+    -   your model is :poop: without a sound theoretical understanding!
 
 ## This week's Session {transition="convex-in none-out" transition-speed="fast"}
 
@@ -245,10 +251,10 @@ By the end of this session, we will understand:
 
 ::::: columns
 ::: {.column width="60%"}
--   In 2024, Brighton and Hove Council convinced that the biggest driver of pupil attainment within schools was social mixing
--   The 'disadvantage attainment gap' - socio-economically disadvantaged students tend to perform worse than their more affluent peers
--   Belief based, primarily, on work of Professor Stephen Gorard, University of Durham
--   Solution: create more socially mixed schools through a new controversial admissions policy
+-   In 2024, Brighton and Hove Council convinced that the biggest driver of pupil attainment within schools was concentration of disadvantage
+-   ***Disadvantage Attainment Gap*** - socio-economically disadvantaged students perform worse than their more affluent peers
+-   Work of Professor Stephen Gorard, University of Durham, suggests mixing of disadvantage improves attainment
+-   **Solution**: create more socially mixed schools through a new controversial admissions policy
 :::
 
 ::: {.column width="40%"}
@@ -654,7 +660,7 @@ ggplot(england_filtered, aes(x = PTFSM6CLA1A)) +
 <https://www.nfer.ac.uk/publications/being-present-the-power-of-attendance-and-stability-for-disadvantaged-pupils/>
 :::
 
-## Step 2 - Method
+## Step 2 - Method {transition="convex-in none-out" transition-speed="fast"}
 
 ![](images/stat_tests.png){width="80%"}
 
@@ -675,7 +681,6 @@ ggplot(england_filtered, aes(x = PTFSM6CLA1A)) +
 #| warning: FALSE
 #| out-width: "60%"
 #| fig-align: "center"
-
 ## get LEA Code from here: https://get-information-schools.service.gov.uk/Guidance/LaNameCodes
 
 # Filter data
@@ -744,8 +749,7 @@ ggplot(btn_sub, aes(x = PTFSM6CLA1A, y = ATT8SCR, color = SCHNAME.x)) +
   theme(
     legend.position = c(1, 1),           # top-right inside plot
     legend.justification = c(1, 1)
-  ) 
-
+  )
 ```
 
 -   **A regression model is nothing more than a description of a scatter plot**
@@ -866,13 +870,19 @@ ggplot(btn_sub, aes(x = PTFSM6CLA1A, y = ATT8SCR)) +
   theme_minimal()
 ```
 
--   The fit of the model is represented by the $R^2$ value and is calculated from the residuals
+-   The fit of the model is represented by the $R^2$ value and is calculated from the residuals. It is sometimes referred to as the ***coefficient of determination***
 -   It describes how much of the variation in $Y$ (Attainment 8 score) is explained by the variation in $X$ (% Disadvantaged Students) - here 69%
 -   The closer to 1, the better the fit of the model
 
 ## Linear Regression - R-Squared
 
-![](wk6/images/Correlation_examples2.png)
+![](images/Correlation_examples2.png)
+
+-   It's easy to visually estimate your $R^2$ value from looking at how well correlated the points are. *NB as squared, always +*
+
+::: footer
+Source: <https://work.thaslwanter.at/Stats/html/statsRelation.html>
+:::
 
 ## Linear Regression - Slope and Intercept
 
@@ -933,7 +943,7 @@ ggplot(btn_sub, aes(x = PTFSM6CLA1A, y = ATT8SCR)) +
 # Filter data
 btn_sub <- england_filtered %>%
   filter(LEA == 846) %>% 
-  select(URN, SCHNAME.x, LEA, ATT8SCR, PTFSM6CLA1A)
+  select(URN, SCHNAME.x, LEA, ATT8SCR, PTFSM6CLA1A, PERCTOT, OFSTEDRATING, gor_name)
 
 # Fit linear model and get predicted values
 lm_fit <- lm(ATT8SCR ~ PTFSM6CLA1A, data = btn_sub)
@@ -998,8 +1008,7 @@ summary(lm_fit)
 -   The residual errors range from -8.3 (Longhill) to + 4.7 (Varndean)
 -   The residual standard error of 4.087 = predictions for School's Attainment 8 score are off by about 4.1 points
 -   Residual Standard Error (RSE) and $R^2$ are inversely related - A smaller RSE and larger $R^2$ both mean a more precise model
--   Both derived from the sum of the squared residual error (SSE)
--   The F-Statistic is a ratio of the amount of variance explained by the model to the amount of variance not explained by the model - overall p-value \<0.05 = the model is statistically significant
+-   The F-Statistic is a ratio of the amount of variance in $Y$ explained by the model to that not. x 17.7 more - statistically significant <0.005
 
 ## Linear Regression - Degrees of Freedom
 
@@ -1012,26 +1021,34 @@ summary(lm_fit)
 
 ## Linear Regression - Degrees of Freedom
 
--   **General rule**: *more degrees of freedom = more reliable model*
+-   **General rule**: ***more degrees of freedom = more reliable model***
 -   A model with many parameters vs observations will bend to fit those observations and not be a good generalisation - this is called ***overfitting***
 -   A model with little freedom might *appear* to have a high $R^2$
     -   but it is likely to perform poorly on new, unseen data
     -   it has captured the characteristics of your specific dataset rather than an underlying truth
+-   **General Rule**: ***the more observations in your dataset the better!***
 
 ## Linear Regression - Degrees of Freedom
 
 -   **How many Degrees of Freedom are required for a reliable model?**
 -   No single, universally agreed-upon number - aim to maintain a healthy ratio of observations to the number of parameters
 -   A common rule of thumb is the 10:1 ratio - **10 observations for every 1 parameter** - although this is a rough guide. If in doubt, even up to 20:1 to be safe
--   In our example, we have 10 observations and 2 parameters = 5:1 ratio = potentially unreliable model
+-   In our example, we have 10 observations and 2 parameters = 5:1 ratio = ***so a potentially unreliable model - proceed with extreme caution!***
+
+## Linear Regression - Variance
+
+-   Degress of Freedom are also used to calculate the ***variance*** of the model
+-   If you ran the same model on different samples of the same population - e.g instead of Brighton, you ran this model on schools in Leeds or Bristol or Liverpool - you would get different values for your coefficients each time
+-   How similar these are to each other and more importantly the the whole population (all schools in England and Wales) is the ***variance*** - you want to minimise the variance in your coefficients if you want to generalise your model to the wider population
+-   **We will return to the idea of variance later**
 
 ## Linear Regression - Coefficients 1
 
 ![](images/the_coefs.png)
 
 -   The Estimates ($\beta$)
-    -   Intercept - estimated Attainment 8 when % Disadvantaged Children in a school is zero
-    -   PTFSM6CLA1A - effect of a one-unit change in the % Disadvantaged Children on Attainment 8 - therefore linked to the units of the independent variable and not directly comparable across different variables if measured on different scales
+    -   Intercept - estimated Attainment 8 value when % Disadvantaged Children in a school is **zero**
+    -   PTFSM6CLA1A (slope 1) - effect of a one-unit change in the % Disadvantaged Children on Attainment 8 - therefore linked to the units of the independent variable and not directly comparable across different variables if measured on different scales
 
 ## Linear Regression - Coefficients 2
 
@@ -1047,15 +1064,15 @@ summary(lm_fit)
 
 -   The t-value - ratio of the Estimate to the SE
     -   a large standard error will make the t-value small (close to zero)
-    -   t-values can be thought of as a standardised coefficient - very useful for comparing the relative importance of different predictors in the model
+    -   ***t-values can be thought of as a standardised coefficient*** - very useful for comparing the relative importance of different predictors in the model
     -   The larger the t-value, the more significant the predictor is in explaining the variation in the dependent variable (more importance in your model)
 
 ## Linear Regression - Coefficients 4
 
 ![](images/the_coefs.png)
 
--   The p-value - **p**robability of observing a t-value as extreme as the one calculated if there were no relationship between the independent and the dependent variable
--   A small p-value (typically \< 0.05) indicates that the predictor is statistically significant in explaining the variation in the dependent variable
+-   The p-value - **p**robability of observing a t-value as extreme as the one calculated if there were ***no relationship*** between the independent and the dependent variable
+-   A small p-value (typically \< 0.05) indicates <5% change that $X$ not explaining variation in $Y$
 -   The Signif. codes (like \*\*\* and \*\*) are just a quick visual guide to this p-value, showing you at a glance which variables are significant.
 -   Any parameter with 1, 2 or 3\* is "statistically significant" at 5% or better
 
@@ -1063,10 +1080,10 @@ summary(lm_fit)
 
 ![](images/the_coefs.png)
 
--   The p-values relate to the null hypotheses that:
-    -   The true value of the intercept is zero when the independent variable is zero. P \<0.001 = \<0.1% probability that 62.3 occured by random chance
+-   The p-values relate to the ***null hypotheses*** that:
+    1.   true value of the intercept is **zero** when the independent variable is **zero**. P \<0.001 = \<0.1% probability that 62.3 occured by random chance
         -   It doesn't tell us that when % Disadvantaged is zero, 62.3 will be a correct Attainment 8 score, just real value is unlikely to be zero
-    -   The true value of the PTFSM6CLA1A slope (relationship between % Disadvantaged and Attainment 8) is 0. P \< 0.01 = \<1% probability that the relationship observed is by chance. Relationship is likely to be real.
+    2.   true value of the PTFSM6CLA1A slope (relationship between % Disadvantaged and Attainment 8) is zero. P \< 0.01 = \<1% probability that the relationship observed is by chance. Relationship is likely to be real.
 
 ## Linear Regression - Summary so far
 
@@ -1108,7 +1125,7 @@ ggplot(btn_sub, aes(x = PTFSM6CLA1A, y = ATT8SCR)) +
 4.  The degrees of freedom in the model are small, so model likely to be overfitted and unreliable for generalisation
 
 -   Small numbers of observations (schools in the city) mean that the model is highly sensitive to changes in the data
--   It's also unclear whether there are any other factors that might be correlated with disadvantaged students that might also be influencing Attainment 8 scores and ***confounding*** the apparent relationship we observe
+-   It's also unclear whether there are any other factors that might be correlated with disadvantaged students that might also be influencing Attainment 8 scores and ***confounding (return to this later)*** the apparent relationship we observe
 -   ***What are the practical consequences of overfitting?***
 :::
 
@@ -1179,7 +1196,7 @@ ggplot(btn_edit, aes(x = PTFSM6CLA1A, y = ATT8SCR)) +
 
 -   Plausible changes to three schools have almost completely removed relationship between % Disadvantaged Students & Attainment 8
 -   Overfitting -\> parameters highly sensitive to minor changes to a few key data points
--   The closer the best-fit line gets to horizontal, the closer we get to **NO RELATIONSHIP** between the independent and dependent variables
+-   The ***closer the best-fit line gets to horizontal***, the closer we get to **NO RELATIONSHIP** between the independent and dependent variables
 
 ## Linear Regression - Overfitting, Outliers and High Leverage Points
 
@@ -1374,14 +1391,14 @@ check_model(lm_fit,
 -   **Independence of residuals**: Something for later
 -   Presently our model violates most of the key assumptions that underpin linear regression models. What this means is that in its current form, the relationship between % Disadvantaged Students and Attainment 8 described by the model is not reliable
 
-## Linear Regression - Dealing with Non-Linearity
-
+## Linear Regression - Non-Linearity
+$$log(Y) = \beta_0 + \beta_1log(X_1) + \epsilon$$
 ```{r}
 #| echo: false
 #| message: false
 #| warning: false
 #| fig-align: center
-#| out-width: 60%
+#| out-width: 50%
 
 england_filtered <- england_filtered %>%
   filter(PTFSM6CLA1A > 0, ATT8SCR > 0)
@@ -1428,11 +1445,83 @@ ggplot(england_filtered) +
 ## Linear Regression - the log-log transformation
 
 ```{r}
+#| label: attainment-8-histogram4
+#| fig.width: 8
+#| fig.height: 5
+#| fig.align: "center"
+
+library(ggplot2)
+library(dplyr)
+
+
+# Calculate log-transformed summary stats
+mean_value <- mean(log(england_filtered$ATT8SCR), na.rm = TRUE)
+median_value <- median(log(england_filtered$ATT8SCR), na.rm = TRUE)
+sd_value <- sd(log(england_filtered$ATT8SCR), na.rm = TRUE)
+
+ggplot(england_filtered, aes(x = log(ATT8SCR))) +
+  geom_histogram(aes(y = ..density..), binwidth = 0.05, fill = "#4E3C56", alpha = 0.4) +
+  stat_function(fun = dnorm, args = list(mean = mean_value, sd = sd_value),
+                color = "#2E6260", size = 1) +
+  geom_vline(xintercept = median_value, colour = "black", linetype = "dotted", size = 1) +
+  geom_vline(xintercept = mean_value, colour = "#F9DD73", linetype = "solid", size = 1) +
+  annotate("text",
+           x = median_value, y = Inf,
+           label = paste0("Median = ", round(median_value, 2)),
+           vjust = 1.3, colour = "black", size = 3.5) +
+  annotate("text",
+           x = mean_value, y = Inf,
+           label = paste0("Mean = ", round(mean_value, 2)),
+           vjust = 30.5, colour = "#F9DD73", size = 3.5) +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.08))) +
+  labs(
+    title = "Log-Transformed Attainment 8 - Academy and Maintained Schools 2022/23",
+    x = "Log(Attainment 8 Score)",
+    y = "Density"
+  ) +
+  theme_minimal()
+```
+
+## Linear Regression - the log-log transformation
+
+```{r}
+mean_ptfsm <- mean(log(england_filtered$PTFSM6CLA1A), na.rm = TRUE)
+median_ptfsm <- median(log(england_filtered$PTFSM6CLA1A), na.rm = TRUE)
+sd_ptfsm <- sd(log(england_filtered$PTFSM6CLA1A), na.rm = TRUE)
+
+ggplot(england_filtered, aes(x = log(PTFSM6CLA1A))) +
+  geom_histogram(aes(y = ..density..), binwidth = 0.15, fill = "#4E3C56", alpha = 0.4) +
+  stat_function(fun = dnorm, args = list(mean = mean_ptfsm, sd = sd_ptfsm),
+                color = "#2E6260", size = 1) +
+  geom_vline(xintercept = median_ptfsm, colour = "black", linetype = "dotted", size = 1) +
+  geom_vline(xintercept = mean_ptfsm, colour = "#F9DD73", linetype = "solid", size = 1) +
+  annotate("text",
+           x = median_ptfsm, y = Inf,
+           label = paste0("Median = ", round(median_ptfsm, 2)),
+           vjust = 1.3, colour = "black", size = 3.5) +
+  annotate("text",
+           x = mean_ptfsm, y = Inf,
+           label = paste0("Mean = ", round(mean_ptfsm, 2)),
+           vjust = 30.5, colour = "#F9DD73", size = 3.5) +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.08))) +
+  labs(
+    title = "Log-Transformed % Disadvantaged Students - Academy and Maintained Schools 2022/23",
+    x = "Log(% Disadvantaged Students)",
+    y = "Density"
+  ) +
+  theme_minimal()
+```
+
+
+
+## Linear Regression - the log-log transformation
+
+```{r}
 summary(lm_fit)
 ```
 
 -   Everything now looks highly statistically significant
--   $R^2$ is much better - 45%
+-   $R^2$ is much better than before - 45%
 
 ## Linear Regression - the log-log transformation
 
@@ -1472,16 +1561,16 @@ check_model(lm_fit,
 
 -   Interpreting the log-log relationship:
     -   Where the relationship is negative, a small absolute change in the independent variable at the *lower* end has a *bigger* impact than the same small absolute change at the higher end
-    -   On our original plot that the effect of levels of disadvantage on attainment is much stronger at very low levels of disadvantage and weakens as the level of disadvantage increases
+    -   On our original plot: the effect of levels of disadvantage on attainment is much ***stronger at very low levels of disadvantage*** and ***weakens as the level of disadvantage increases***
 
 ## Linear Regression - Level-log model
-
+$$Y = \beta_0 + \beta_1log(X_1) + \epsilon$$
 ```{r}
 #| echo: false
 #| message: false
 #| warning: false
 #| fig-align: center
-#| out-width: 60%
+#| out-width: 40%
 
 england_filtered <- england_filtered %>%
   filter(PTFSM6CLA1A > 0, ATT8SCR > 0)
@@ -1521,10 +1610,8 @@ ggplot(england_filtered) +
        y = "Average Attainment 8 Score") +
   theme_minimal()
 ```
-
 -   Other options are to use a ***level-log*** model, where the dependent variable is not transformed but the independent variable is log-transformed.
--   Use when the effect of the independent variable has diminishing returns.
-    -   e.g. a change from 10 to 11 has a larger effect than a change from 100 to 101. Common with variables like income or population size
+-   Use when the effect of the independent variable has diminishing returns - e.g. a change from log(2.7%) exp(1) to log(7.3%) exp(2) disadvantaged students has same effect as a change from log(20%) exp(3) to log(54.5%) exp(4)
 
 ## Linear Regression - Level-log model
 
@@ -1562,18 +1649,237 @@ check_model(lm_fit,
             check = c("qq"))
 ```
 
-## Interpretation for Brighton and Hove
+## Linear Regression - to log or not to log?
 
-## Regression Maths
+-   The log-log model appears a better fit than the level-log model, however both are better than the basic linear model
+-   How to proceed will depend a little on whether we want to extend our model with other explanatory variables and the relationship they have with attainment
+-   Log-log - use when the relationship is believed to be multiplicative and the effects are best understood in terms of percentage changes. 
+    -   This model is also excellent at addressing issues with heteroscedasticity and skewed variables
+-   Level-log - use when the effect of the independent variable has diminishing returns
 
--   The general form of a linear regression model is:
+## Linear Regression - extending the model
 
-    $$Y = \beta_0 + \beta_1X_1 + \beta_2X_2 + ... + \beta_nX_n + \epsilon$$
+-   Mathematically (if not visually) we can add as many additional dependent variables as we like to increase the explanatory power of our model
 
-    where:
+$$Y_i = \beta_0 + \beta_1X_{1i} + \beta_2X_{2i} + \dots + \beta_kX_{ki} + \epsilon_i$$
 
-    -   $Y$ is the dependent variable
-    -   $X_1, X_2, ..., X_n$ are the independent variables
-    -   $\beta_0$ is the intercept (constant term)
-    -   $\beta_1, \beta_2, ..., \beta_n$ are the coefficients for each independent variable
-    -   $\epsilon$ is the error term (residuals)
+where:
+
+-   $Y_i$ is the dependent variable of observation $i$
+-   $X_{1i}, X_{2i}, ..., X_{ki}$ are the independent variables for observation $i$
+-   $\beta_0$ is the intercept (constant term)
+-   $\beta_1, \beta_2, ..., \beta_k$ are the coefficients for each independent variable
+-   $\epsilon_i$ is the error term (residual) for observation $i$
+
+## Linear Regression - extending the model
+
+-   Sometimes in the literature you will see a shorthand matrix version of this equation, written:
+
+$$Y = X{\beta} + {\epsilon}$$
+
+where:
+
+-   $Y$: A column vector of all the dependent variable observations.
+-   $X$: A matrix called the "design matrix," which contains a column of 1s (for the intercept) and columns for the values of all your independent variables for every observation.
+-   $\beta$: A column vector of all the coefficients you are estimating.
+-   $\epsilon$: A column vector of all the residuals.
+
+## Multiple Linear Regression
+
+-   Multiple linear regression is an extension of simple linear regression that allows us to model the relationship between a dependent variable and multiple independent variables
+-   As with bivariate regression, variables should be chosen based on theory and prior research rather than just throwing the variables in
+-   However, it's permissible to experiment and iterate between data exploration and theory - both can inform each other
+
+## Multiple Linear Regression
+
+```{r}
+# Plot with annotation
+ggplot(england_filtered) +
+  geom_point(aes(x = log(PERCTOT), y = ATT8SCR, alpha = 0.6)) +  # Base layer: all schools
+  geom_point(data = btn_sub, aes(x = log(PERCTOT), y = ATT8SCR), 
+             color = "#F9DD73", size = 2.5) +  # Overlay: Brighton & Hove schools
+  geom_smooth(aes(x = log(PERCTOT), y = ATT8SCR), method = "lm", 
+              se = FALSE, color = "#8F5289") +
+  annotate("text", x = max(log(england_filtered$PERCTOT), na.rm = TRUE), 
+           y = min(england_filtered$ATT8SCR, na.rm = TRUE), 
+           label = annotation_text, hjust = 2.5, vjust = -8, size = 4, color = "#4E3C56") +
+  labs(title = "England and Wales Schools - Attainment 8 \nvs % Persistent Absence, 2022-23",
+       x = "log(% Persistent Absence)",
+       y = "log(Average Attainment 8 Score)") +
+  theme_minimal()
+```
+-   If we recall from some of the background slides, significant research to suggest persistent absence an important factor in attainment
+
+## Multiple Linear Regression
+
+```{r}
+# Fit linear model and get predicted values
+lm_fit1 <- lm(log(ATT8SCR) ~ log(PERCTOT) , data = england_filtered)
+
+summary(lm_fit1)
+```
+
+-   The simple bivariate model for persistent absence improves the $R^2$ value to 60% (compared to 45% for the % disadvantage model)
+-   This suggests that persistent absence might explain more of the variation in Attainment 8, but one way to really tell is to put them in a model together
+
+## Multiple Linear Regression
+
+```{r}
+#| out-width: 80%
+#| align: center
+
+library(plotly)
+
+fig <- plot_ly(england_filtered, x = ~log(PTFSM6CLA1A), y = ~log(ATT8SCR), z = ~log(PERCTOT), color = ~gor_name)
+fig <- fig %>% add_markers()
+fig <- fig %>% layout(scene = list(xaxis = list(title = 'log(% Disadvantaged)'),
+                     yaxis = list(title = 'log(Attainment 8)'),
+                     zaxis = list(title = 'log(% Persistent Absence)')))
+
+fig
+```
+
+## Multiple Linear Regression
+
+```{r}
+# Fit linear model and get predicted values
+lm_fit1 <- lm(log(ATT8SCR) ~ log(PTFSM6CLA1A) + log(PERCTOT), data = england_filtered)
+
+summary(lm_fit1)
+```
+-   What is the model telling us?
+
+## Multiple Linear Regression
+
+-   The coefficients for both variables are statistically ***significant and negative***, indicating that both variables contribute to explaining the variation in Attainment 8 scores
+-   But t-values indicate that the ***% Persistent Absence variable (-50.49) has a stronger effect on Attainment 8 scores than the % Disadvantaged Students variable (-31.16)***
+-   The $R^2$ value is now 0.69, indicating that the model is potentially good and explains ***69% of the variation in Attainment 8 scores***. Degrees of freedom are good and the overall model is statistically significant.
+-   But does is satisfy the assumptions of linear regression?
+
+## Multiple Linear Regression - Diagnostics 1
+
+```{r}
+
+check_model(lm_fit1, 
+            check = c("linearity"))
+
+```
+-   Pretty good - the residuals are randomly scattered around zero, suggesting a linear relationship
+
+## Multiple Linear Regression - Diagnostics 2
+```{r}
+check_model(lm_fit1, 
+            check = c("qq"))
+```
+-   The residuals are normally distributed - the Q-Q plot shows most points on the line
+
+## Multiple Linear Regression - Diagnostics 3
+```{r}
+check_model(lm_fit1, 
+            check = c("homogeneity"))
+```
+-   The residuals are randomly scattered around zero, suggesting constant variance.
+
+## Linear Regression - Diagnostics
+
+-   **Linearity**: Passed
+-   **Homoscedasticity**: Passed
+-   **Normality of residuals**: Passed
+-   **No multicollinearity**: What is this?
+-   **Independence of residuals**: What is this?
+
+## Multiple Linear Regression - Multicollinearity
+
+-   Multicollinearity occurs when two or more independent variables in a regression model are ***highly correlated*** with each other
+-   This can lead to unreliable estimates of the coefficients, inflated standard errors, and difficulty in interpreting the results
+
+## Multiple Linear Regression - Multicollinearity
+
+```{r}
+#| out-width: 70%
+#| align: center
+library(correlation)
+library(see)
+
+corr <- england_filtered |>
+  correlation(select = c("PTFSM6CLA1A", "PERCTOT", "ATT8SCR"))
+
+corr %>%
+  summary(redundant = TRUE) %>%
+  plot()
+
+```
+
+-   A quick and easy way to check for the correlation between your independent variables is generate a standard correlation matrix/plot
+-   Difficult to say what is too much correlation - but over 0.7 is often considered problematic
+-   However, pairwise correlations might miss n-way correlations
+
+```{r}
+check_model(lm_fit1, 
+            check = c("vif"))
+```
+
+-   A more useful diagnostic tool is the ***Variance Inflation Factor (VIF)***, which measures how much the variance of a regression coefficient is increased due to multicollinearity
+-   A VIF value of 1 indicates no correlation, while a VIF value above 5 or 10 suggests high multicollinearity
+
+## Multiple Linear Regression - VIF
+
+***Why does it even matter if the variance is inflated?***
+
+-   ***Variance = Uncertainty*** in our model
+-   If 2 or more variables are highly correlated and both appear to affect the dependent variable, it can be difficult to determine which variable is actually having the effect
+-   The model makes an arbitrary split
+-   Small changes in the data could make the split go either way - e.g. attribute more of the effect to % Disadvantaged Students or % Persistent Absence (if VIF high) - thus ***inflating*** the uncertainty / ***variance***
+
+## Multiple Linear Regression - VIF
+
+-   Despite some positive correlation (0.48) between % Disadvantaged Studets and % Persistent Absence, the VIF is very low ~1.5
+-   No problems with multicollinearity
+-   So we have passed that test and can happily use both in the model
+
+## Linear Regression - Diagnostics
+
+-   **Linearity**: Passed
+-   **Homoscedasticity**: Passed
+-   **Normality of residuals**: Passed
+-   **No multicollinearity**: Passed
+-   **Independence of residuals**: What is this?
+
+## Multiple Linear Regression - Independence of Residuals
+
+-   Independence of residuals means that the residuals (errors) of the model are not correlated with each other
+-   This is important because if the residuals are correlated, it suggests that there is some pattern in the errors that the model has not captured, which can lead to biased estimates and incorrect conclusions
+-   Correlated residuals can occur when there is a time or spatial component to the data, or when there are unobserved variables that are influencing the dependent variable
+
+## Multiple Linear Regression - Spatial Or Temporal (auto)Correlation
+
+-   In our case, we have a spatial component to the data - schools are located in different areas of England and Wales
+-   If schools in the same area have similar characteristics, it is likely that the residuals will be correlated
+-   The easiest way to check this is to plot the values of the residuals for the schools on a map
+
+## Multiple Linear Regression - Spatial Or Temporal (auto)Correlation
+
+
+
+
+## Multiple Linear Regression - Dummy Variables
+
+
+
+
+## Multiple Linear Regression - Confounding
+
+
+## Multiple Linear Regression - Interaction Effects
+
+
+
+
+```{r}
+# Fit linear model and get predicted values
+lm_fit1 <- lm(log(ATT8SCR) ~ log(PTFSM6CLA1A) , data = england_filtered)
+
+summary(lm_fit1)
+```
+
+
