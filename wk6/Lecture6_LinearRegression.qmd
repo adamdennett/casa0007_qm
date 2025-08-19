@@ -596,7 +596,6 @@ ggplot(england_filtered, aes(x = PTFSM6CLA1A)) +
   theme_minimal()
 ```
 
-
 ## Step 1c - Ingredients (selection) {transition="convex-in none-out" transition-speed="fast"}
 
 -   The process of exploring and interrogating your data should take much longer than the modelling at the end
@@ -871,6 +870,10 @@ ggplot(btn_sub, aes(x = PTFSM6CLA1A, y = ATT8SCR)) +
 -   It describes how much of the variation in $Y$ (Attainment 8 score) is explained by the variation in $X$ (% Disadvantaged Students) - here 69%
 -   The closer to 1, the better the fit of the model
 
+## Linear Regression - R-Squared
+
+![](wk6/images/Correlation_examples2.png)
+
 ## Linear Regression - Slope and Intercept
 
 ```{r}
@@ -996,7 +999,7 @@ summary(lm_fit)
 -   The residual standard error of 4.087 = predictions for School's Attainment 8 score are off by about 4.1 points
 -   Residual Standard Error (RSE) and $R^2$ are inversely related - A smaller RSE and larger $R^2$ both mean a more precise model
 -   Both derived from the sum of the squared residual error (SSE)
--   The F-Statistic is a ratio of the amount of variance explained by the model to the amount of variance not explained by the model - overall p-value <0.05 = the model is statistically significant
+-   The F-Statistic is a ratio of the amount of variance explained by the model to the amount of variance not explained by the model - overall p-value \<0.05 = the model is statistically significant
 
 ## Linear Regression - Degrees of Freedom
 
@@ -1076,7 +1079,6 @@ summary(lm_fit)
 3.  A 1% reduction in the number of disadvantaged students in a school appears to be associated with a 0.62 point increase in Attainment 8, and vice versa
 
     **So the council was right? Well, not quite...**
-
 :::
 
 ::: {.column width="40%"}
@@ -1103,13 +1105,11 @@ ggplot(btn_sub, aes(x = PTFSM6CLA1A, y = ATT8SCR)) +
 
 ::::: columns
 ::: {.column width="60%"}
-
 4.  The degrees of freedom in the model are small, so model likely to be overfitted and unreliable for generalisation
 
 -   Small numbers of observations (schools in the city) mean that the model is highly sensitive to changes in the data
 -   It's also unclear whether there are any other factors that might be correlated with disadvantaged students that might also be influencing Attainment 8 scores and ***confounding*** the apparent relationship we observe
 -   ***What are the practical consequences of overfitting?***
-
 :::
 
 ::: {.column width="40%"}
@@ -1133,6 +1133,7 @@ ggplot(btn_sub, aes(x = PTFSM6CLA1A, y = ATT8SCR)) +
 :::::
 
 ## Linear Regression - Overfitting, Outliers and High Leverage Points
+
 -   When we overfit, the model can be overly influenced by ***outliers*** (large residuals) and changes in key ***leverage points*** (points that are far from the mean of the independent variable)
 -   What happens to our model if a school improvement plan brings the outlier (Longhill) closer to attainment at Hove Park?
 -   Council makes Varndean increase its disadvantaged intake to 30%?
@@ -1177,7 +1178,7 @@ ggplot(btn_edit, aes(x = PTFSM6CLA1A, y = ATT8SCR)) +
 ```
 
 -   Plausible changes to three schools have almost completely removed relationship between % Disadvantaged Students & Attainment 8
--   Overfitting -> parameters highly sensitive to minor changes to a few key data points
+-   Overfitting -\> parameters highly sensitive to minor changes to a few key data points
 -   The closer the best-fit line gets to horizontal, the closer we get to **NO RELATIONSHIP** between the independent and dependent variables
 
 ## Linear Regression - Overfitting, Outliers and High Leverage Points
@@ -1185,8 +1186,9 @@ ggplot(btn_edit, aes(x = PTFSM6CLA1A, y = ATT8SCR)) +
 ```{r}
 summary(lm_edit)
 ```
--   Overall p-value of model now **statistically insignificant** >0.1
--   % Disadvantage in Schools now **statistically insignificant**
+
+-   Overall p-value of model now **statistically insignificant** \>0.1
+-   \% Disadvantage in Schools now **statistically insignificant**
 
 ## Linear Regression - More Degrees of Freedom
 
@@ -1225,6 +1227,7 @@ ggplot(england_filtered) +
        y = "Average Attainment 8 Score") +
   theme_minimal()
 ```
+
 -   Now we have a model that includes all schools in England and Wales
 -   Negative association present - appears to confirm Gorard's observation
 -   R-Squared is reasonable - 33% of the variation explained
@@ -1235,7 +1238,8 @@ ggplot(england_filtered) +
 summary(lm_fit)
 
 ```
--   We now have 3248 degrees of freedom 
+
+-   We now have 3248 degrees of freedom
 -   Intercept and % Disadvantaged Students both highly significant
 -   Life is good? ***Wrong... Houston, we have some more problems!!***
 
@@ -1247,7 +1251,6 @@ summary(lm_fit)
     -   **Normality of residuals**: Residuals are normally distributed
     -   **No multicollinearity**: Independent variables are not highly correlated
     -   **Independence of residuals**: Errors are not related to each other with each other
-
 
 ## Linear Regression - Linearity?
 
@@ -1286,8 +1289,9 @@ ggplot(england_filtered) +
        y = "Average Attainment 8 Score") +
   theme_minimal()
 ```
+
 -   Linearity - Does your line go through all the points nicely?
--   Hmmmm - suggestion of non-linearity with big up-tick at the low end of disadvantage 
+-   Hmmmm - suggestion of non-linearity with big up-tick at the low end of disadvantage
 
 ## Linear Regression - Linearity?
 
@@ -1322,6 +1326,7 @@ library(performance)
 check_model(lm_fit, 
             check = c("homogeneity"))
 ```
+
 -   Issues here too: the residuals are not randomly scattered around zero
 
 ## Linear Regression - Normality of Residuals?
@@ -1338,9 +1343,10 @@ library(performance)
 check_model(lm_fit, 
             check = c("qq"))
 ```
+
 -   This is known as a **Q-Q plot** (Quantile-Quantile plot)
 -   A number of points not on the line - suggesting the residuals are not normally distributed
--   Many points off line could mean untrustworthy p-values 
+-   Many points off line could mean untrustworthy p-values
 
 ## Linear Regression - Outliers?
 
@@ -1360,6 +1366,7 @@ check_model(lm_fit,
 -   At least we don't have any problems with outliers!
 
 ## Linear Regression - Diagnostics
+
 -   **Linearity**: Failed
 -   **Homoscedasticity**: Failed
 -   **Normality of residuals**: Failed
@@ -1415,15 +1422,15 @@ ggplot(england_filtered) +
   theme_minimal()
 ```
 
--   The log($Y$) log($X$) model is a standard transformation of these variables that can help to linearise relationships 
+-   The log($Y$) log($X$) model is a standard transformation of these variables that can help to linearise relationships
 -   Sometimes referred to as an *elasticity* model, a % (rather than constant) change in $X$ leads to a % (not constant) change in $Y$
-
 
 ## Linear Regression - the log-log transformation
 
 ```{r}
 summary(lm_fit)
 ```
+
 -   Everything now looks highly statistically significant
 -   $R^2$ is much better - 45%
 
@@ -1445,6 +1452,7 @@ check_model(lm_fit,
 -   The residuals are now randomly scattered around zero - suggesting a linear relationship
 
 ## Linear Regression - the log-log transformation
+
 ```{r}
 #| echo: false
 #| message: false
@@ -1463,7 +1471,7 @@ check_model(lm_fit,
 ## Linear Regression - the log-log transformation
 
 -   Interpreting the log-log relationship:
-    -   Where the relationship is negative, a small absolute change in the independent variable at the *lower* end has a *bigger* impact than the same small absolute change at the higher end 
+    -   Where the relationship is negative, a small absolute change in the independent variable at the *lower* end has a *bigger* impact than the same small absolute change at the higher end
     -   On our original plot that the effect of levels of disadvantage on attainment is much stronger at very low levels of disadvantage and weakens as the level of disadvantage increases
 
 ## Linear Regression - Level-log model
@@ -1514,10 +1522,9 @@ ggplot(england_filtered) +
   theme_minimal()
 ```
 
--   Other options are to use a ***level-log*** model, where the dependent variable is not transformed but the independent variable is log-transformed. 
--   Use when the effect of the independent variable has diminishing returns. 
+-   Other options are to use a ***level-log*** model, where the dependent variable is not transformed but the independent variable is log-transformed.
+-   Use when the effect of the independent variable has diminishing returns.
     -   e.g. a change from 10 to 11 has a larger effect than a change from 100 to 101. Common with variables like income or population size
-
 
 ## Linear Regression - Level-log model
 
@@ -1539,7 +1546,9 @@ library(performance)
 check_model(lm_fit, 
             check = c("linearity"))
 ```
+
 ## Linear Regression - Level-log model
+
 ```{r}
 #| echo: false
 #| message: false
@@ -1554,10 +1563,6 @@ check_model(lm_fit,
 ```
 
 ## Interpretation for Brighton and Hove
-
-
-
-
 
 ## Regression Maths
 
