@@ -870,7 +870,7 @@ ggplot(btn_sub, aes(x = PTFSM6CLA1A, y = ATT8SCR)) +
   theme_minimal()
 ```
 
--   The fit of the model is represented by the $R^2$ value and is calculated from the residuals. It is sometimes referred to as the ***coefficient of determination***
+-   The fit of the model is represented by the ***coefficient of determination*** or $R^2$ value, which is calculated from the residuals
 -   It describes how much of the variation in $Y$ (Attainment 8 score) is explained by the variation in $X$ (% Disadvantaged Students) - here 69%
 -   The closer to 1, the better the fit of the model
 
@@ -1008,7 +1008,7 @@ summary(lm_fit)
 -   The residual errors range from -8.3 (Longhill) to + 4.7 (Varndean)
 -   The residual standard error of 4.087 = predictions for School's Attainment 8 score are off by about 4.1 points
 -   Residual Standard Error (RSE) and $R^2$ are inversely related - A smaller RSE and larger $R^2$ both mean a more precise model
--   The F-Statistic is a ratio of the amount of variance in $Y$ explained by the model to that not. x 17.7 more - statistically significant <0.005
+-   The F-Statistic is a ratio of the amount of variance in $Y$ explained by the model to that not. x 17.7 more - statistically significant \<0.005
 
 ## Linear Regression - Degrees of Freedom
 
@@ -1027,6 +1027,7 @@ summary(lm_fit)
     -   but it is likely to perform poorly on new, unseen data
     -   it has captured the characteristics of your specific dataset rather than an underlying truth
 -   **General Rule**: ***the more observations in your dataset the better!***
+-   **High $R^2$ with low DF = :poop:**
 
 ## Linear Regression - Degrees of Freedom
 
@@ -1047,14 +1048,14 @@ summary(lm_fit)
 ![](images/the_coefs.png)
 
 -   The Estimates ($\beta$)
-    -   Intercept - estimated Attainment 8 value when % Disadvantaged Children in a school is **zero**
-    -   PTFSM6CLA1A (slope 1) - effect of a one-unit change in the % Disadvantaged Children on Attainment 8 - therefore linked to the units of the independent variable and not directly comparable across different variables if measured on different scales
+    -   **Intercept** - estimated Attainment 8 value when % Disadvantaged Children in a school is **zero**
+    -   PTFSM6CLA1A (**slope** 1) - effect of a one-unit change in the % Disadvantaged Children on Attainment 8 - therefore linked to the units of the independent variable and not directly comparable across different variables if measured on different scales
 
 ## Linear Regression - Coefficients 2
 
 ![](images/the_coefs.png)
 
--   The Standard Error (SE) - measure of the uncertainty or precision of the estimate
+-   The Standard Error (SE) - measure of the uncertainty or precision of the estimate (coefficient) - how much it might vary
     -   Large SE relative to the Estimate = estimate unreliable / uncertain
     -   SE of 0.15 for the estimate of -0.63 for PTFSM6CLA1A means the change in the value of Attainment 8 for a 1% change in disadvantaged students could vary between -0.48 and -0.78
 
@@ -1062,17 +1063,17 @@ summary(lm_fit)
 
 ![](images/the_coefs.png)
 
--   The t-value - ratio of the Estimate to the SE
+-   The t-value - ratio of the $\frac{Estimate}{SE}$
     -   a large standard error will make the t-value small (close to zero)
     -   ***t-values can be thought of as a standardised coefficient*** - very useful for comparing the relative importance of different predictors in the model
-    -   The larger the t-value, the more significant the predictor is in explaining the variation in the dependent variable (more importance in your model)
+    -   The **larger the t-value, the more important the predictor** is in explaining the variation in the dependent variable - more important the variable
 
 ## Linear Regression - Coefficients 4
 
 ![](images/the_coefs.png)
 
 -   The p-value - **p**robability of observing a t-value as extreme as the one calculated if there were ***no relationship*** between the independent and the dependent variable
--   A small p-value (typically \< 0.05) indicates <5% change that $X$ not explaining variation in $Y$
+-   A small p-value (typically \< 0.05) indicates \<5% change that $X$ not explaining variation in $Y$
 -   The Signif. codes (like \*\*\* and \*\*) are just a quick visual guide to this p-value, showing you at a glance which variables are significant.
 -   Any parameter with 1, 2 or 3\* is "statistically significant" at 5% or better
 
@@ -1081,9 +1082,8 @@ summary(lm_fit)
 ![](images/the_coefs.png)
 
 -   The p-values relate to the ***null hypotheses*** that:
-    1.   true value of the intercept is **zero** when the independent variable is **zero**. P \<0.001 = \<0.1% probability that 62.3 occured by random chance
-        -   It doesn't tell us that when % Disadvantaged is zero, 62.3 will be a correct Attainment 8 score, just real value is unlikely to be zero
-    2.   true value of the PTFSM6CLA1A slope (relationship between % Disadvantaged and Attainment 8) is zero. P \< 0.01 = \<1% probability that the relationship observed is by chance. Relationship is likely to be real.
+    1.  true value of the intercept is **zero** when the independent variable is **zero**. P \<0.001 = \<0.1% probability that 62.3 occured by random chance - It doesn't tell us that when % Disadvantaged is zero, 62.3 will be a correct Attainment 8 score, just real value is unlikely to be zero
+    2.  true value of the PTFSM6CLA1A slope (relationship between % Disadvantaged and Attainment 8) is zero. P \< 0.01 = \<1% probability that the relationship observed is by chance. Relationship is likely to be real.
 
 ## Linear Regression - Summary so far
 
@@ -1345,6 +1345,7 @@ check_model(lm_fit,
 ```
 
 -   Issues here too: the residuals are not randomly scattered around zero
+-   They are instead displaying ***heteroscdasticity***
 
 ## Linear Regression - Normality of Residuals?
 
@@ -1392,7 +1393,9 @@ check_model(lm_fit,
 -   Presently our model violates most of the key assumptions that underpin linear regression models. What this means is that in its current form, the relationship between % Disadvantaged Students and Attainment 8 described by the model is not reliable
 
 ## Linear Regression - Non-Linearity
+
 $$log(Y) = \beta_0 + \beta_1log(X_1) + \epsilon$$
+
 ```{r}
 #| echo: false
 #| message: false
@@ -1512,8 +1515,6 @@ ggplot(england_filtered, aes(x = log(PTFSM6CLA1A))) +
   theme_minimal()
 ```
 
-
-
 ## Linear Regression - the log-log transformation
 
 ```{r}
@@ -1564,7 +1565,9 @@ check_model(lm_fit,
     -   On our original plot: the effect of levels of disadvantage on attainment is much ***stronger at very low levels of disadvantage*** and ***weakens as the level of disadvantage increases***
 
 ## Linear Regression - Level-log model
+
 $$Y = \beta_0 + \beta_1log(X_1) + \epsilon$$
+
 ```{r}
 #| echo: false
 #| message: false
@@ -1584,6 +1587,8 @@ btn_sub <- btn_sub %>%
 
 # Fit model
 lm_fit <- lm(ATT8SCR ~ log(PTFSM6CLA1A), data = england_filtered)
+lm_fit_a <- lm(log(ATT8SCR) ~ log(PTFSM6CLA1A), data = england_filtered)
+lm_fit_b <- lm(log(ATT8SCR) ~ log(PERCTOT), data = england_filtered)
 
 # Extract coefficients
 slope <- round(coef(lm_fit)[2], 2)
@@ -1610,6 +1615,7 @@ ggplot(england_filtered) +
        y = "Average Attainment 8 Score") +
   theme_minimal()
 ```
+
 -   Other options are to use a ***level-log*** model, where the dependent variable is not transformed but the independent variable is log-transformed.
 -   Use when the effect of the independent variable has diminishing returns - e.g. a change from log(2.7%) exp(1) to log(7.3%) exp(2) disadvantaged students has same effect as a change from log(20%) exp(3) to log(54.5%) exp(4)
 
@@ -1653,7 +1659,7 @@ check_model(lm_fit,
 
 -   The log-log model appears a better fit than the level-log model, however both are better than the basic linear model
 -   How to proceed will depend a little on whether we want to extend our model with other explanatory variables and the relationship they have with attainment
--   Log-log - use when the relationship is believed to be multiplicative and the effects are best understood in terms of percentage changes. 
+-   Log-log - use when the relationship is believed to be multiplicative and the effects are best understood in terms of percentage changes.
     -   This model is also excellent at addressing issues with heteroscedasticity and skewed variables
 -   Level-log - use when the effect of the independent variable has diminishing returns
 
@@ -1708,6 +1714,7 @@ ggplot(england_filtered) +
        y = "log(Average Attainment 8 Score)") +
   theme_minimal()
 ```
+
 -   If we recall from some of the background slides, significant research to suggest persistent absence an important factor in attainment
 
 ## Multiple Linear Regression
@@ -1743,10 +1750,21 @@ fig
 
 ```{r}
 # Fit linear model and get predicted values
-lm_fit1 <- lm(log(ATT8SCR) ~ log(PTFSM6CLA1A) + log(PERCTOT), data = england_filtered)
+model_data <- england_filtered %>%
+  filter(!is.na(ATT8SCR), !is.na(PTFSM6CLA1A), !is.na(PERCTOT))
+
+lm_fit1 <- lm(log(ATT8SCR) ~ log(PTFSM6CLA1A) + log(PERCTOT), data = model_data)
 
 summary(lm_fit1)
+
+model_data <- model_data %>%
+  mutate(
+    fitted_ATT8SCR = exp(fitted(lm_fit1)),
+    resids_real = ATT8SCR - fitted_ATT8SCR
+  )
+
 ```
+
 -   What is the model telling us?
 
 ## Multiple Linear Regression
@@ -1764,20 +1782,25 @@ check_model(lm_fit1,
             check = c("linearity"))
 
 ```
+
 -   Pretty good - the residuals are randomly scattered around zero, suggesting a linear relationship
 
 ## Multiple Linear Regression - Diagnostics 2
+
 ```{r}
 check_model(lm_fit1, 
             check = c("qq"))
 ```
+
 -   The residuals are normally distributed - the Q-Q plot shows most points on the line
 
 ## Multiple Linear Regression - Diagnostics 3
+
 ```{r}
 check_model(lm_fit1, 
             check = c("homogeneity"))
 ```
+
 -   The residuals are randomly scattered around zero, suggesting constant variance.
 
 ## Linear Regression - Diagnostics
@@ -1814,7 +1837,11 @@ corr %>%
 -   Difficult to say what is too much correlation - but over 0.7 is often considered problematic
 -   However, pairwise correlations might miss n-way correlations
 
+## Multiple Linear Regression - VIF
+
 ```{r}
+#| out-width: 70%
+#| align: center
 check_model(lm_fit1, 
             check = c("vif"))
 ```
@@ -1833,7 +1860,7 @@ check_model(lm_fit1,
 
 ## Multiple Linear Regression - VIF
 
--   Despite some positive correlation (0.48) between % Disadvantaged Studets and % Persistent Absence, the VIF is very low ~1.5
+-   Despite some positive correlation (0.48) between % Disadvantaged Students and % Persistent Absence, the VIF is very low \~1.5
 -   No problems with multicollinearity
 -   So we have passed that test and can happily use both in the model
 
@@ -1848,8 +1875,8 @@ check_model(lm_fit1,
 ## Multiple Linear Regression - Independence of Residuals
 
 -   Independence of residuals means that the residuals (errors) of the model are not correlated with each other
--   This is important because if the residuals are correlated, it suggests that there is some pattern in the errors that the model has not captured, which can lead to biased estimates and incorrect conclusions
--   Correlated residuals can occur when there is a time or spatial component to the data, or when there are unobserved variables that are influencing the dependent variable
+-   This is important because if the residuals are (auto)correlated, it suggests that there is some pattern in the errors that the model has not captured, which can lead to biased estimates and incorrect conclusions
+-   (auto)correlated residuals can occur when there is a time or spatial component to the data, or when there are unobserved variables that are influencing the dependent variable
 
 ## Multiple Linear Regression - Spatial Or Temporal (auto)Correlation
 
@@ -1857,29 +1884,155 @@ check_model(lm_fit1,
 -   If schools in the same area have similar characteristics, it is likely that the residuals will be correlated
 -   The easiest way to check this is to plot the values of the residuals for the schools on a map
 
-## Multiple Linear Regression - Spatial Or Temporal (auto)Correlation
+## Multiple Linear Regression - Residual (auto)Correlation
+
+
+```{r}
+#| out-width: 60%
+#| align: center
+library(leaflet)
+library(scales)
+library(sf)
+
+england_sf <- model_data %>%
+  st_as_sf(coords = c("easting", "northing"), crs = 27700) %>%
+  st_transform(crs = 4326)  # for Leaflet
+
+library(leaflet)
+
+max_abs <- max(abs(england_sf$resids_real), na.rm = TRUE)
+
+pal <- colorNumeric(
+  palette = "RdBu",
+  domain = c(-max_abs, max_abs),
+  reverse = FALSE  # reverse = FALSE gives blue = negative, red = positive
+)
+
+leaflet(data = england_sf) %>%
+  addProviderTiles("CartoDB.Positron") %>%
+  addCircleMarkers(
+    radius = 4,
+    color = ~pal(resids_real),
+    stroke = FALSE,
+    fillOpacity = 1,
+    popup = ~paste0(
+      "<strong>Actual:</strong> ", round(ATT8SCR, 2), "<br>",
+      "<strong>Fitted:</strong> ", round(fitted_ATT8SCR, 2), "<br>",
+      "<strong>Residual:</strong> ", round(resids_real, 2)
+    )
+  ) %>%
+  addLegend(
+    position = "bottomright",
+    pal = pal,
+    values = ~resids_real,
+    title = "Residuals (Actual – Fitted)",
+    labFormat = labelFormat(digits = 2),
+    opacity = 1
+  )
 
 
 
+```
+
+-   Residuals show clear spatial autocorrelation
+-   London (and other city schools) perform much better than model predicts
+
+## Multiple Linear Regression - Residual (auto)Correlation
+
+-   **ALWAYS MAP YOUR RESIDUALS IF MODELLING SPATIAL DATA**
+-   Correlated residuals often the sign of an omitted variable (e.g "London")
+-   In the GIS Course you will learn a lot more about testing for spatial autocorrelation (using Moran's I) and how spatial variables (lags, error terms) or geographically weighted regression can be used to deal with spatial autocorrelation
+-   Here we will try something much simpler - adding London (and other regions) to our model
 
 ## Multiple Linear Regression - Dummy Variables
 
+-   One of the nice features of a linear regression model is the independent variables don't just have to be on a continuous or ratio scale, but they can also be categorical / nominal
+-   Categorical variables added to a regression model are referred to as ***DUMMY*** variables
+-   In our model, we might want to add the names of the regions that the schools fall in as dummy variables to see if indeed the "London" effect suggested in the residual map is real
 
+## Multiple Linear Regression - Dummy Variables
+
+```{r}
+# Fit linear model and get predicted values
+model_data$gor_name <- relevel(factor(model_data$gor_name), ref = "London")
+model_data$ofsted_rating_name <- relevel(factor(model_data$ofsted_rating_name), ref = "Outstanding")
+
+lm_fit2 <- lm(log(ATT8SCR) ~ log(PTFSM6CLA1A) + log(PERCTOT) + gor_name, data = model_data)
+
+summary(lm_fit2)
+```
+-   In this model, I have added the Government Office Region (GOR) as a dummy variable. 
+
+## Multiple Linear Regression - Dummy Variables
+
+```{r}
+# Fit linear model and get predicted values
+summary(lm_fit2)
+```
+
+-   There are 9 regions in England and here "London" has been set as the **contrast** or reference variable (which all others are compared to)
+-   Changing the contrast compares each region to a different reference
+
+## Multiple Linear Regression - Dummy Variables
+
+```{r}
+# Fit linear model and get predicted values
+model_data$gor_name <- relevel(factor(model_data$gor_name), ref = "South East")
+model_data$ofsted_rating_name <- relevel(factor(model_data$ofsted_rating_name), ref = "Outstanding")
+
+lm_fit2 <- lm(log(ATT8SCR) ~ log(PTFSM6CLA1A) + log(PERCTOT) + gor_name, data = model_data)
+
+summary(lm_fit2)
+```
+-   South East as contrast - London's log(ATT8SCR) is 0.0957 higher
+-   This equals (exp(0.095655) - 1) * 100 = 10% - London's average Attainment 8 is 10% higher than the South East
+
+## Multiple Linear Regression - Dummy Variables
+
+-   There is no correct contrast to choose for your 
+dummy variable, you may need to try different ones to see which makes most intuitive sense
+-   Depending on the contrast, some dummy regions may or may not be statistically significant in comparison
+-   The inclusion of a regional dummy in this model has improved the $R^2$ to 72%
+-   However, you may have noticed some of the coefficients have changed and this brings us to *confounding*
 
 
 ## Multiple Linear Regression - Confounding
 
+-   Confounding is the change in the effect on the dependent variable of the independent variables in the presence of each other
+-   Can occur when we know some independent variables might effect each other (such as disadvantage on absence) even when their joint presence doesn't cause variance issues
+-   **Looking for confounding effects is a crucial part of model building - how do the coefficients of your model change when you introduce other variables?**
+
+
+## Multiple Linear Regression - Confounding
+
+```{r}
+#| out-width: 50%
+#| align: center
+library(jtools)
+
+export_summs(lm_fit_a, lm_fit_b, lm_fit1)
+```
+-   In the presence of persistent absence, the effect of disadvantage is confounded
+
+## Multiple Linear Regression - Confounding
+
+-   The coefficient for log(PTFSM6CLA1A) - disadvantage - shrinks dramatically, from -0.207 down to -0.111 (a 46.23% reduction in effect)
+-   While the coefficient for log(PERCTOT) - persistent absence - also shrinks from -0.54 to -0.41 this is just a 24.6% reduction
+-   The confounding effect of persistent absence on disadvantage is ***almost double*** the confounding effect of disadvantage on persistent absence
+-   This means that the relationship between disadvantage and Attainment 8 is much more biased by the omission of persistent absence from the model than the other way around
+
+## Multiple Linear Regression - Confounding
+
+```{r}
+summary(lm_fit2)
+```
+
 
 ## Multiple Linear Regression - Interaction Effects
 
-
-
-
 ```{r}
-# Fit linear model and get predicted values
-lm_fit1 <- lm(log(ATT8SCR) ~ log(PTFSM6CLA1A) , data = england_filtered)
+lm_fit3 <- lm(log(ATT8SCR) ~ log(PTFSM6CLA1A) * gor_name + log(PERCTOT) * gor_name, data = model_data)
 
-summary(lm_fit1)
+summary(lm_fit3)
 ```
-
 
