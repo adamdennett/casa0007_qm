@@ -661,24 +661,35 @@ ggplot(england_filtered, aes(x = PTFSM6CLA1A)) +
 
 ## Step 2 - Method {transition="convex-in none-out" transition-speed="fast"}
 
-![](images/stat_tests.png){width="80%"}
+```{mermaid}
+flowchart TD
+    I{Choosing a statistical test} -->
+    A[How Many Variables?] -->
+    C[2?] & G[More than 2?]
+    C -->|Categorical?| D[Chi Squared or Similar]
+    C -->|Scale or Ratio?| E[Pearson Correlation or Spearman's Rank]
+    C -->|Both?| F[Ask Google]
+    G --> H[REGRESSION - everything else, get in the bin]
+```
+
+
 
 ::: Footer
 <https://statsandr.com/blog/files/overview-statistical-tests-statsandr.pdf>
 :::
 
-## Step 2 - Method {transition="convex-in none-out" transition-speed="fast"}
+<!-- ## Step 2 - Method {transition="convex-in none-out" transition-speed="fast"} -->
 
--   ***Based on our raw ingredients, which methods might allow us to try and answer our research question(s)?***
--   ***Dependent variable(s)*** (what we are trying to explain / predict): Attainment 8 / Progress 8 **-\>** continuous / Ratio scales
--   ***Independent variables*** - explanatory / predictor variables of varying data types to explain variation in the dependent variable
--   As such ***Linear Regression*** is the most appropriate statistical test to employ
+<!-- -   ***Based on our raw ingredients, which methods might allow us to try and answer our research question(s)?*** -->
+<!-- -   ***Dependent variable(s)*** (what we are trying to explain / predict): Attainment 8 / Progress 8 **-\>** continuous / Ratio scales -->
+<!-- -   ***Independent variables*** - explanatory / predictor variables of varying data types to explain variation in the dependent variable -->
+<!-- -   As such ***Linear Regression*** is the most appropriate statistical test to employ -->
 
-## Step 2 - Method {transition="convex-in none-out" transition-speed="fast"}
+<!-- ## Step 2 - Method {transition="convex-in none-out" transition-speed="fast"} -->
 
--   Good regression models are built slowly and iteratively
--   My preference is to start simply (2 variables) and build complexity (more variables, variations on the method) slowly
--   As with complicated baking recipes, it's important to pay attention to each element of the regression recipe and get each part right
+<!-- -   Good regression models are built slowly and iteratively -->
+<!-- -   My preference is to start simply (2 variables) and build complexity (more variables, variations on the method) slowly -->
+<!-- -   As with complicated baking recipes, it's important to pay attention to each element of the regression recipe and get each part right -->
 
 ## Linear Regression - It's just a scatter plot!
 
@@ -2005,6 +2016,14 @@ summary(lm_fit2)
 -   Depending on the contrast, some dummy regions may or may not be statistically significant in comparison
 -   The inclusion of a regional dummy in this model has improved the $R^2$ to 72%
 -   However, you may have noticed some of the coefficients have changed and this brings us to *confounding*
+
+## Multiple Linear Regression - Confounding
+
+![](images/confound1.png)
+
+## Multiple Linear Regression - Confounding
+
+![](images/confound2.png)
 
 ## Multiple Linear Regression - Confounding
 
