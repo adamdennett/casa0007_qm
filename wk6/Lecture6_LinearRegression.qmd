@@ -339,6 +339,8 @@ england_school_2022_23 %>%
   filter(establishment_status_name == "Open") %>% 
   select(URN, SCHNAME.x, TOWN.x, TOTPUPS, ATT8SCR, OFSTEDRATING, MINORGROUP, PTFSM6CLA1A) |>
   reactable(theme = casa_reactable_theme(colour = "purple"))
+
+
 ```
 
 ## Step 1b - Ingredients (familiarisation) {transition="convex-in none-out" transition-speed="fast"}
@@ -485,6 +487,8 @@ library(dplyr)
 # Filter out unwanted categories
 england_filtered <- england_school_2022_23 %>%
   filter(!MINORGROUP %in% c("Special school", "Independent school", "College", NA))
+
+#write_csv(england_filtered, "data/england_filtered.csv")
 
 # Recalculate stats on the filtered data
 median_value <- median(england_filtered$ATT8SCR, na.rm = TRUE)
@@ -672,8 +676,6 @@ flowchart TD
     G --> H[REGRESSION - everything else, get in the bin]
 ```
 
-
-
 ::: Footer
 <https://statsandr.com/blog/files/overview-statistical-tests-statsandr.pdf>
 :::
@@ -681,14 +683,19 @@ flowchart TD
 <!-- ## Step 2 - Method {transition="convex-in none-out" transition-speed="fast"} -->
 
 <!-- -   ***Based on our raw ingredients, which methods might allow us to try and answer our research question(s)?*** -->
+
 <!-- -   ***Dependent variable(s)*** (what we are trying to explain / predict): Attainment 8 / Progress 8 **-\>** continuous / Ratio scales -->
+
 <!-- -   ***Independent variables*** - explanatory / predictor variables of varying data types to explain variation in the dependent variable -->
+
 <!-- -   As such ***Linear Regression*** is the most appropriate statistical test to employ -->
 
 <!-- ## Step 2 - Method {transition="convex-in none-out" transition-speed="fast"} -->
 
 <!-- -   Good regression models are built slowly and iteratively -->
+
 <!-- -   My preference is to start simply (2 variables) and build complexity (more variables, variations on the method) slowly -->
+
 <!-- -   As with complicated baking recipes, it's important to pay attention to each element of the regression recipe and get each part right -->
 
 ## Linear Regression - It's just a scatter plot!
@@ -1047,6 +1054,154 @@ summary(lm_fit)
 
 ## Linear Regression - Degrees of Freedom
 
+```{r}
+# Filter data: Brighton and Hove (LEA 846), then keep first two rows
+btn_sub1 <- england_filtered %>%
+  filter(LEA == 846) %>%
+  select(URN, SCHNAME.x, LEA, ATT8SCR, PTFSM6CLA1A) %>%
+  slice(1:2)
+
+# Fit linear model
+lm_fit <- lm(ATT8SCR ~ PTFSM6CLA1A, data = btn_sub1)
+slope <- round(coef(lm_fit)[2], 2)
+intercept <- round(coef(lm_fit)[1], 2)
+r_squared <- round(summary(lm_fit)$r.squared, 3)
+
+# Create annotation text
+annotation_text <- paste0("y = ", intercept, " + ", slope, "x\nR² = ", r_squared)
+
+# Plot with annotation
+ggplot(btn_sub1) +
+  geom_point(aes(x = PTFSM6CLA1A, y = ATT8SCR), size = 3, color = "#2C7BB6") +
+  geom_smooth(aes(x = PTFSM6CLA1A, y = ATT8SCR), method = "lm", se = FALSE, color = "#8F5289") +
+  annotate("text",
+           x = mean(btn_sub1$PTFSM6CLA1A),
+           y = max(btn_sub1$ATT8SCR),
+           label = annotation_text,
+           hjust = 0, vjust = 2, size = 5, fontface = "italic") +
+  labs(
+    title = "Brighton and Hove Schools – \nAttainment 8 vs % Disadvantaged Students, 2022–23",
+    x = "% Disadvantaged Students",
+    y = "Average Attainment 8 Score"
+  ) +
+  theme_minimal()
+```
+
+-   2 observations - 2 parameters = 0 degrees of freedom
+
+## Linear Regression - Degrees of Freedom
+
+```{r}
+# Filter data: Brighton and Hove (LEA 846), then keep first two rows
+btn_sub1 <- england_filtered %>%
+  filter(LEA == 846) %>%
+  select(URN, SCHNAME.x, LEA, ATT8SCR, PTFSM6CLA1A) %>%
+  slice(1:3)
+
+# Fit linear model
+lm_fit <- lm(ATT8SCR ~ PTFSM6CLA1A, data = btn_sub1)
+slope <- round(coef(lm_fit)[2], 2)
+intercept <- round(coef(lm_fit)[1], 2)
+r_squared <- round(summary(lm_fit)$r.squared, 3)
+
+# Create annotation text
+annotation_text <- paste0("y = ", intercept, " + ", slope, "x\nR² = ", r_squared)
+
+# Plot with annotation
+ggplot(btn_sub1) +
+  geom_point(aes(x = PTFSM6CLA1A, y = ATT8SCR), size = 3, color = "#2C7BB6") +
+  geom_smooth(aes(x = PTFSM6CLA1A, y = ATT8SCR), method = "lm", se = FALSE, color = "#8F5289") +
+  annotate("text",
+           x = mean(btn_sub1$PTFSM6CLA1A),
+           y = max(btn_sub1$ATT8SCR),
+           label = annotation_text,
+           hjust = 0, vjust = 2, size = 5, fontface = "italic") +
+  labs(
+    title = "Brighton and Hove Schools – \nAttainment 8 vs % Disadvantaged Students, 2022–23",
+    x = "% Disadvantaged Students",
+    y = "Average Attainment 8 Score"
+  ) +
+  theme_minimal()
+```
+
+-   3 observations - 2 parameters = 1 degree of freedom
+
+## Linear Regression - Degrees of Freedom
+
+```{r}
+# Filter data: Brighton and Hove (LEA 846), then keep first two rows
+btn_sub1 <- england_filtered %>%
+  filter(LEA == 846) %>%
+  select(URN, SCHNAME.x, LEA, ATT8SCR, PTFSM6CLA1A) %>%
+  slice(1:4)
+
+# Fit linear model
+lm_fit <- lm(ATT8SCR ~ PTFSM6CLA1A, data = btn_sub1)
+slope <- round(coef(lm_fit)[2], 2)
+intercept <- round(coef(lm_fit)[1], 2)
+r_squared <- round(summary(lm_fit)$r.squared, 3)
+
+# Create annotation text
+annotation_text <- paste0("y = ", intercept, " + ", slope, "x\nR² = ", r_squared)
+
+# Plot with annotation
+ggplot(btn_sub1) +
+  geom_point(aes(x = PTFSM6CLA1A, y = ATT8SCR), size = 3, color = "#2C7BB6") +
+  geom_smooth(aes(x = PTFSM6CLA1A, y = ATT8SCR), method = "lm", se = FALSE, color = "#8F5289") +
+  annotate("text",
+           x = mean(btn_sub1$PTFSM6CLA1A),
+           y = max(btn_sub1$ATT8SCR),
+           label = annotation_text,
+           hjust = 0, vjust = 2, size = 5, fontface = "italic") +
+  labs(
+    title = "Brighton and Hove Schools – \nAttainment 8 vs % Disadvantaged Students, 2022–23",
+    x = "% Disadvantaged Students",
+    y = "Average Attainment 8 Score"
+  ) +
+  theme_minimal()
+```
+
+-   4 observations - 2 parameters = 2 degrees of freedom
+
+## Linear Regression - Degrees of Freedom
+
+```{r}
+# Filter data: Brighton and Hove (LEA 846), then keep first two rows
+btn_sub1 <- england_filtered %>%
+  filter(LEA == 846) %>%
+  select(URN, SCHNAME.x, LEA, ATT8SCR, PTFSM6CLA1A) %>%
+  slice(1:5)
+
+# Fit linear model
+lm_fit <- lm(ATT8SCR ~ PTFSM6CLA1A, data = btn_sub1)
+slope <- round(coef(lm_fit)[2], 2)
+intercept <- round(coef(lm_fit)[1], 2)
+r_squared <- round(summary(lm_fit)$r.squared, 3)
+
+# Create annotation text
+annotation_text <- paste0("y = ", intercept, " + ", slope, "x\nR² = ", r_squared)
+
+# Plot with annotation
+ggplot(btn_sub1) +
+  geom_point(aes(x = PTFSM6CLA1A, y = ATT8SCR), size = 3, color = "#2C7BB6") +
+  geom_smooth(aes(x = PTFSM6CLA1A, y = ATT8SCR), method = "lm", se = FALSE, color = "#8F5289") +
+  annotate("text",
+           x = mean(btn_sub1$PTFSM6CLA1A),
+           y = max(btn_sub1$ATT8SCR),
+           label = annotation_text,
+           hjust = 0, vjust = 2, size = 5, fontface = "italic") +
+  labs(
+    title = "Brighton and Hove Schools – \nAttainment 8 vs % Disadvantaged Students, 2022–23",
+    x = "% Disadvantaged Students",
+    y = "Average Attainment 8 Score"
+  ) +
+  theme_minimal()
+```
+
+-   5 observations - 2 parameters = 3 degrees of freedom
+
+## Linear Regression - Degrees of Freedom
+
 -   **How many Degrees of Freedom are required for a reliable model?**
 -   No single, universally agreed-upon number - aim to maintain a healthy ratio of observations to the number of parameters
 -   A common rule of thumb is the 10:1 ratio - **10 observations for every 1 parameter** - although this is a rough guide. If in doubt, even up to 20:1 to be safe
@@ -1263,7 +1418,7 @@ ggplot(england_filtered) +
 
 -   Now we have a model that includes all schools in England and Wales
 -   Negative association present - appears to confirm Gorard's observation
--   R-Squared is reasonable - 33% of the variation explained
+-   R-Squared is reasonable - 34% of the variation explained
 
 ## Linear Regression - More Degrees of Freedom
 
@@ -1725,13 +1880,13 @@ ggplot(england_filtered) +
   annotate("text", x = max(log(england_filtered$PERCTOT), na.rm = TRUE), 
            y = min(england_filtered$ATT8SCR, na.rm = TRUE), 
            label = annotation_text, hjust = 2.5, vjust = -8, size = 4, color = "#4E3C56") +
-  labs(title = "England and Wales Schools - Attainment 8 \nvs % Persistent Absence, 2022-23",
-       x = "log(% Persistent Absence)",
+  labs(title = "England and Wales Schools - Attainment 8 \nvs % Overall Absence, 2022-23",
+       x = "log(% Overall Absence)",
        y = "log(Average Attainment 8 Score)") +
   theme_minimal()
 ```
 
--   If we recall from some of the background slides, significant research to suggest persistent absence an important factor in attainment
+-   If we recall from some of the background slides, significant research to suggest overall levels of absence an important factor in attainment
 
 ## Multiple Linear Regression
 
@@ -1742,8 +1897,8 @@ lm_fit1 <- lm(log(ATT8SCR) ~ log(PERCTOT) , data = england_filtered)
 summary(lm_fit1)
 ```
 
--   The simple bivariate model for persistent absence improves the $R^2$ value to 60% (compared to 45% for the % disadvantage model)
--   This suggests that persistent absence might explain more of the variation in Attainment 8, but one way to really tell is to put them in a model together
+-   The simple bivariate model for Overall Absence improves the $R^2$ value to 60% (compared to 45% for the % disadvantage model)
+-   This suggests that Overall Absence might explain more of the variation in Attainment 8, but one way to really tell is to put them in a model together
 
 ## Multiple Linear Regression
 
@@ -1754,8 +1909,9 @@ $$\log(\text{Attainment8}) = \beta_0 + \beta_1\log(\text{PctDisadvantage}) +\\\\
 ## Multiple Linear Regression
 
 ```{r}
-#| out-width: 80%
+#| warning: false
 #| align: center
+#| out-width: 80%
 
 library(plotly)
 
@@ -1763,7 +1919,7 @@ fig <- plot_ly(england_filtered, x = ~log(PTFSM6CLA1A), y = ~log(ATT8SCR), z = ~
 fig <- fig %>% add_markers()
 fig <- fig %>% layout(scene = list(xaxis = list(title = 'log(% Disadvantaged)'),
                      yaxis = list(title = 'log(Attainment 8)'),
-                     zaxis = list(title = 'log(% Persistent Absence)')))
+                     zaxis = list(title = 'log(% Overall Absence)')))
 
 fig
 ```
@@ -1792,7 +1948,7 @@ model_data <- model_data %>%
 ## Multiple Linear Regression
 
 -   The coefficients for both variables are statistically ***significant and negative***, indicating that both variables contribute to explaining the variation in Attainment 8 scores
--   But t-values indicate that the ***% Persistent Absence variable (-50.49) has a stronger effect on Attainment 8 scores than the % Disadvantaged Students variable (-31.16)***
+-   But t-values indicate that the ***% Overall Absence variable (-50.49) has a stronger effect on Attainment 8 scores than the % Disadvantaged Students variable (-31.16)***
 -   The $R^2$ value is now 0.69, indicating that the model is potentially good and explains ***69% of the variation in Attainment 8 scores***. Degrees of freedom are good and the overall model is statistically significant.
 -   But does is satisfy the assumptions of linear regression?
 
@@ -1878,11 +2034,11 @@ check_model(lm_fit1,
 -   ***Variance = Uncertainty*** in our model
 -   If 2 or more variables are highly correlated and both appear to affect the dependent variable, it can be difficult to determine which variable is actually having the effect
 -   The model makes an arbitrary split
--   Small changes in the data could make the split go either way - e.g. attribute more of the effect to % Disadvantaged Students or % Persistent Absence (if VIF high) - thus ***inflating*** the uncertainty / ***variance***
+-   Small changes in the data could make the split go either way - e.g. attribute more of the effect to % Disadvantaged Students or % Overall Absence (if VIF high) - thus ***inflating*** the uncertainty / ***variance***
 
 ## Multiple Linear Regression - VIF
 
--   Despite some positive correlation (0.48) between % Disadvantaged Students and % Persistent Absence, the VIF is very low \~1.5
+-   Despite some positive correlation (0.48) between % Disadvantaged Students and % Overall Absence, the VIF is very low \~1.5
 -   No problems with multicollinearity
 -   So we have passed that test and can happily use both in the model
 
@@ -1896,11 +2052,13 @@ check_model(lm_fit1,
 
 ## Multiple Linear Regression - Independence of Residuals
 
--   Independence of residuals means that the residuals (errors) of the model are not correlated with each other
--   This is important because if the residuals are (auto)correlated, it suggests that there is some pattern in the errors that the model has not captured, which can lead to biased estimates and incorrect conclusions
--   (auto)correlated residuals can occur when there is a time or spatial component to the data, or when there are unobserved variables that are influencing the dependent variable
+-    Residuals (errors) should not be correlated with each other
+-    (auto)correlation (clustering) in the errors = model missing something! 
+-    can lead to biased estimates and incorrect conclusions
+-    often occurs when a temporal or spatial component to the data
+-    or when another important variable is missing or omitted
 
-## Multiple Linear Regression - Spatial Or Temporal (auto)Correlation
+## Multiple Linear Regression - Spatial or Temporal (auto)Correlation
 
 -   In our case, we have a spatial component to the data - schools are located in different areas of England and Wales
 -   If schools in the same area have similar characteristics, it is likely that the residuals will be correlated
@@ -1976,7 +2134,7 @@ leaflet(data = england_sf) %>%
 ```{r}
 # Fit linear model and get predicted values
 model_data$gor_name <- relevel(factor(model_data$gor_name), ref = "London")
-model_data$ofsted_rating_name <- relevel(factor(model_data$ofsted_rating_name), ref = "Outstanding")
+#model_data$ofsted_rating_name <- relevel(factor(model_data$ofsted_rating_name), ref = "Outstanding")
 
 lm_fit2 <- lm(log(ATT8SCR) ~ log(PTFSM6CLA1A) + log(PERCTOT) + gor_name, data = model_data)
 
@@ -2007,7 +2165,7 @@ lm_fit2 <- lm(log(ATT8SCR) ~ log(PTFSM6CLA1A) + log(PERCTOT) + gor_name, data = 
 summary(lm_fit2)
 ```
 
--   South East as contrast - London's log(ATT8SCR) is 0.0957 higher
+-   South East as contrast - London's log(ATT8SCR) is 0.09 higher
 -   This equals (exp(0.095655) - 1) \* 100 = 10% - London's average Attainment 8 is 10% higher than the South East
 
 ## Multiple Linear Regression - Dummy Variables
@@ -2034,8 +2192,11 @@ summary(lm_fit2)
 ## Multiple Linear Regression - Confounding
 
 ```{r}
-#| out-width: 50%
+#| echo: false
+#| message: false
+#| warning: false
 #| align: center
+#| out-width: 50%
 library(jtools)
 library(sjPlot)
 library(sjmisc)
@@ -2046,14 +2207,14 @@ export_summs(lm_fit_a, lm_fit_b, lm_fit1, error_format = "",error_pos = "same" )
 
 ```
 
--   In the presence of persistent absence, the effect of disadvantage is confounded
+-   In the presence of Overall Absence, the effect of disadvantage is confounded
 
 ## Multiple Linear Regression - Confounding
 
--   The coefficient for log(PTFSM6CLA1A) - disadvantage - shrinks dramatically, from -0.207 down to -0.111 (a 46.23% reduction in effect)
--   While the coefficient for log(PERCTOT) - persistent absence - also shrinks from -0.54 to -0.41 this is just a 24.6% reduction
--   The confounding effect of persistent absence on disadvantage is ***almost double*** the confounding effect of disadvantage on persistent absence
--   This means that the relationship between disadvantage and Attainment 8 is much more biased by the omission of persistent absence from the model than the other way around
+-   The coefficient for log(PTFSM6CLA1A) - disadvantage - shrinks dramatically, from -0.21 down to -0.11 (a 44.5% reduction in effect)
+-   While the coefficient for log(PERCTOT) - Overall Absence - also shrinks from -0.54 to -0.41 this is just a 24.6% reduction
+-   The confounding effect of Overall Absence on disadvantage is ***almost double*** the confounding effect of disadvantage on Overall Absence
+-   This means that the relationship between disadvantage and Attainment 8 is much more biased by the omission of overall absence from the model than the other way around
 
 ## Multiple Linear Regression - Confounding
 
@@ -2061,19 +2222,19 @@ export_summs(lm_fit_a, lm_fit_b, lm_fit1, error_format = "",error_pos = "same" )
 summary(lm_fit2)
 ```
 
--   Including a regional dummy ***slightly reduces the effect of persistent absence*** and ***slightly increases the effect of disadvantage***, relative to model 3
+-   Including a regional dummy ***slightly reduces the effect of Overall Absence*** and ***slightly increases the effect of disadvantage***, relative to model 3
 
 ## Multiple Linear Regression - Confounding
 
 Interpretation:
 
 -   Part of the negative effect of disadvantage was being suppressed or masked by the regional differences (probably London where Attainment 8 is higher on average and so are levels of disadvantage)
--   Part of the negative effect of persistent absence is due to its correleation with regional factors - but which ones?
--   We can explore this question through one final twist in our modelling recipe - we can look at the ***interaction effects*** between individual regions and disadvantage / persistent absence
+-   Part of the negative effect of Overall Absence is due to its correleation with regional factors - but which ones?
+-   We can explore this question through one final twist in our modelling recipe - we can look at the ***interaction effects*** between individual regions and disadvantage / Overall Absence
 
 ## Multiple Linear Regression - Interaction Effects
 
--   Put simply, an interaction term allows the model to answer the question: ***"Does the effect of disadvantage/persistent absence on a school's Attainment 8 score change from region to region?"***
+-   Put simply, an interaction term allows the model to answer the question: ***"Does the effect of disadvantage/Overall Absence on a school's Attainment 8 score change from region to region?"***
 -   Operationally, running the model simply requires variables to be multiplied together (signifying the interaction) in the regression equation rather than added
 -   Practically, the combinations of variables need some careful attention (or the assistance of a helpful Artificial Intelligence helper) to interpret correctly!
 
@@ -2091,10 +2252,10 @@ summary(lm_fit3)
 
 -   Main Effect (Reference Group):
     -   The coefficient for log(PTFSM6CLA1A) is -0.190520. This is the effect of disadvantage in the South East.
-    -   The coefficient for log(PERCTOT) is -0.289960. This is the effect of persistent absence in the South East.
+    -   The coefficient for log(PERCTOT) is -0.289960. This is the effect of Overall Absence in the South East.
 -   Interaction Effects (Reference Group value + Other Region coefficient):
     -   log(PTFSM6CLA1A):gor_nameLondon: The significant positive coefficient (+0.078684) means that the negative effect of disadvantage is less severe in London than in the South East.
-    -   gor_nameLondon:log(PERCTOT): The significant negative coefficient (-0.069792) means that the negative effect of persistent absence is more severe in London than in the South East.
+    -   gor_nameLondon:log(PERCTOT): The significant negative coefficient (-0.069792) means that the negative effect of Overall Absence is more severe in London than in the South East.
 
 ## Multiple Linear Regression - Interaction Effects
 
@@ -2108,6 +2269,20 @@ summary(lm_fit3)
 # This is a good practice to avoid complex formulas
 model_data$log_PTFSM6CLA1A <- log(model_data$PTFSM6CLA1A)
 model_data$log_PERCTOT <- log(model_data$PERCTOT)
+
+range(model_data$log_PTFSM6CLA1A)
+range(model_data$log_PERCTOT)
+
+btn_sub$log_PTFSM6CLA1A <- log(btn_sub$PTFSM6CLA1A)
+btn_sub$log_PERCTOT <- log(btn_sub$PERCTOT)
+
+range(btn_sub$log_PTFSM6CLA1A)
+range(btn_sub$log_PERCTOT)
+
+range(exp(btn_sub$log_PTFSM6CLA1A))
+range(exp(btn_sub$log_PERCTOT))
+
+plot(exp(btn_sub$log_PTFSM6CLA1A), exp(btn_sub$log_PERCTOT))
 
 # Step 2: Mean-center the new logged variables
 # The syntax is now correct because you are referencing a column name.
