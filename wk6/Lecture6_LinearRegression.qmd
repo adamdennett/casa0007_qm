@@ -620,6 +620,7 @@ ggplot(england_filtered, aes(x = PTFSM6CLA1A)) +
     -   This is a common mistake
     -   It can also lead to spurious interpretation where correlation and causation are not the same thing
 -   Carrying out a thorough literature review will also give you context for interpreting your model results later on in the process
+-   **ALWAYS CARRY OUT A THOROUGH LITERATURE REVIEW TO HELP GUIDE YOUR DATA / VARIABLE SELECTION**
 
 ## Step 1c - Ingredients (selection) {transition="convex-in none-out" transition-speed="fast"}
 
@@ -667,13 +668,13 @@ ggplot(england_filtered, aes(x = PTFSM6CLA1A)) +
 
 ```{mermaid}
 flowchart TD
-    I{Choosing a statistical test} -->
+    I{Choosing a <br/>statistical test} -->
     A[How Many Variables?] -->
-    C[2?] & G[More than 2?]
-    C -->|Categorical?| D[Chi Squared or Similar]
-    C -->|Scale or Ratio?| E[Pearson Correlation or Spearman's Rank]
-    C -->|Both?| F[Ask Google]
-    G --> H[REGRESSION - everything else, get in the bin]
+    C(2?) & G(More than 2?)
+    C -->|Categorical?| D(Chi Squared <br/>or Similar e.g. T-test)
+    C -->|Scale or Ratio?| E(Pearson Correlation <br/>or Spearman's Rank)
+    C -->|Both?| F(Ask Google)
+    G --> H(REGRESSION - everything else, <br/>get in the bin)
 ```
 
 ::: Footer
@@ -812,7 +813,7 @@ ggplot(btn_sub) +
 
 -   The linear regression model is the straight line of best-fit
 -   A linear model function `lm()` (in `R`) uses a method called ***Ordinary Least Squares (OLS)*** to find the line of best-fit.
--   The best line minimises the squared (so that negatives and positives don't candel) vertical distances between the line and the points - hence OLS
+-   The best line minimises the squared (so that negatives and positives don't cancel) vertical distances between the line and the points - hence OLS
 
 ## Linear Regression - Residuals / Error
 
@@ -1003,6 +1004,25 @@ $$Y = \beta_0 + \beta_1X_1 + \epsilon$$ $$\hat{Y} = 62.35 + (-0.63 \times X) + \
 
 ## Linear Regression - The Statistical Model
 
+::::: columns
+::: {.column width="50%"}
+-   Scatter plots are an excellent intuitive way to understand the relationship between two continuous variables
+-   But algorithms are required to generate the various plot statistics and other useful info
+-   Lots of different statistical software packages will do this
+-   Doesn't matter which you use, they all do pretty much the same thing under the hood
+:::
+
+::: {.column width="50%"}
+![](images/Python-logo-notext.svg.png){width="20%"} ![](images/R_logo.svg.png){width="20%"}
+![](images/Stata_logo_med_blue.png){width="20%"}
+![](images/spss-1-logo-png-transparent.png){width="20%"}
+![](images/statsmodels-logo-v2-horizontal.svg){width="20%"}
+![](images/tidy_models.png){width="20%"}
+:::
+:::::
+
+## Linear Regression - The Statistical Model
+
 ```{r}
 #| out-width: "40%"
 #| out-height: "50%"
@@ -1010,8 +1030,7 @@ $$Y = \beta_0 + \beta_1X_1 + \epsilon$$ $$\hat{Y} = 62.35 + (-0.63 \times X) + \
 summary(lm_fit)
 ```
 
--   Scatter plots are an excellent intuitive way to understand the relationship between two continuous variables
--   Statistical software describes key plot features + other useful info
+-   Example output from R
 
 ## Linear Regression - Running the Model
 
@@ -1219,15 +1238,15 @@ ggplot(btn_sub1) +
 ![](images/the_coefs.png)
 
 -   The Estimates ($\beta$)
-    -   **Intercept** - estimated Attainment 8 value when % Disadvantaged Children in a school is **zero**
-    -   PTFSM6CLA1A (**slope** 1) - effect of a one-unit change in the % Disadvantaged Children on Attainment 8 - therefore linked to the units of the independent variable and not directly comparable across different variables if measured on different scales
+    -   **Intercept $\beta_0$** - estimated Attainment 8 value when % Disadvantaged Children in a school is **zero**
+    -   PTFSM6CLA1A (**slope $\beta_1$**) - effect of a one-unit change in the % Disadvantaged Children on Attainment 8 - therefore linked to the units of the independent variable and not directly comparable across different variables if measured on different scales
 
 ## Linear Regression - Coefficients 2
 
 ![](images/the_coefs.png)
 
 -   The Standard Error (SE) - measure of the uncertainty or precision of the estimate (coefficient) - how much it might vary
-    -   Large SE relative to the Estimate = estimate unreliable / uncertain
+    -   **Large SE relative to the Estimate = estimate unreliable / uncertain**
     -   SE of 0.15 for the estimate of -0.63 for PTFSM6CLA1A means the change in the value of Attainment 8 for a 1% change in disadvantaged students could vary between -0.48 and -0.78
 
 ## Linear Regression - Coefficients 3
@@ -1244,7 +1263,7 @@ ggplot(btn_sub1) +
 ![](images/the_coefs.png)
 
 -   The p-value - **p**robability of observing a t-value as extreme as the one calculated if there were ***no relationship*** between the independent and the dependent variable
--   A small p-value (typically \< 0.05) indicates \<5% change that $X$ not explaining variation in $Y$
+-   A small p-value (typically $p$ \< 0.05) indicates \<5% chance that $X$ is not really explaining variation in $Y$
 -   The Signif. codes (like \*\*\* and \*\*) are just a quick visual guide to this p-value, showing you at a glance which variables are significant.
 -   Any parameter with 1, 2 or 3\* is "statistically significant" at 5% or better
 
@@ -1255,77 +1274,52 @@ ggplot(btn_sub1) +
 -   The p-values relate to the ***null hypotheses*** that:
     1.  true value of the intercept is **zero** when the independent variable is **zero**. P \<0.001 = \<0.1% probability that 62.3 occured by random chance - It doesn't tell us that when % Disadvantaged is zero, 62.3 will be a correct Attainment 8 score, just real value is unlikely to be zero
     2.  true value of the PTFSM6CLA1A slope (relationship between % Disadvantaged and Attainment 8) is zero. P \< 0.01 = \<1% probability that the relationship observed is by chance. Relationship is likely to be real.
-
+    
 ## Linear Regression - Summary so far
 
-::::: columns
-::: {.column width="60%"}
+```{r}
+#| out-width: "40%"
+#| out-height: "50%"
+#| fig-align: "center"
+ggplot(btn_sub, aes(x = PTFSM6CLA1A, y = ATT8SCR)) +
+  geom_point() +
+  geom_abline(intercept = coef(lm_fit)[1], slope = coef(lm_fit)[2], color = "#8F5289") +
+  geom_segment(aes(xend = PTFSM6CLA1A, yend = predicted),
+               linetype = "dotted", color = "grey50") +
+  annotate("text", x = max(btn_sub$PTFSM6CLA1A, na.rm = TRUE), 
+           y = min(btn_sub$ATT8SCR, na.rm = TRUE), 
+           label = annotation_text, hjust = 1, vjust = -15, size = 4, color = "#4E3C56") +
+  labs(title = "Brighton and Hove Schools - Attainment 8 vs % Disadvantaged Students, 2022-23",
+       x = "% Disadvantaged Students",
+       y = "Average Attainment 8 Score") +
+  xlim(0, max(50)) +
+  ylim(min(30), 65) +
+  theme_minimal()
+```
+
 1.  Variation in % disadvantaged students in schools in Brighton appears to explain about 65-68% of the variation in Attainment 8 at the school level
 
 2.  The % disadvantaged students is a statistically significant predictor and the relationship appears to be linear
 
-3.  A 1% reduction in the number of disadvantaged students in a school appears to be associated with a 0.62 point increase in Attainment 8, and vice versa
+3.  A 1% reduction in the number of disadvantaged students in a school appears to be associated with a 0.62 point increase in Attainment 8, and vice versa. **So the council was right? Well, not quite...**
 
-    **So the council was right? Well, not quite...**
-:::
-
-::: {.column width="40%"}
-```{r}
-ggplot(btn_sub, aes(x = PTFSM6CLA1A, y = ATT8SCR)) +
-  geom_point() +
-  geom_abline(intercept = coef(lm_fit)[1], slope = coef(lm_fit)[2], color = "#8F5289") +
-  geom_segment(aes(xend = PTFSM6CLA1A, yend = predicted),
-               linetype = "dotted", color = "grey50") +
-  annotate("text", x = max(btn_sub$PTFSM6CLA1A, na.rm = TRUE), 
-           y = min(btn_sub$ATT8SCR, na.rm = TRUE), 
-           label = annotation_text, hjust = 1, vjust = -15, size = 4, color = "#4E3C56") +
-  labs(title = "Brighton and Hove Schools - Attainment 8 vs % Disadvantaged Students, 2022-23",
-       x = "% Disadvantaged Students",
-       y = "Average Attainment 8 Score") +
-  xlim(0, max(50)) +
-  ylim(min(30), 65) +
-  theme_minimal()
-```
-:::
-:::::
 
 ## Linear Regression - Summary so far
 
-::::: columns
-::: {.column width="60%"}
-4.  The degrees of freedom in the model are small, so model likely to be overfitted and unreliable for generalisation
+4.  The degrees of freedom in the model are small, so model likely to be **over-fitted** and unreliable for generalisation
 
 -   Small numbers of observations (schools in the city) mean that the model is highly sensitive to changes in the data
 -   It's also unclear whether there are any other factors that might be correlated with disadvantaged students that might also be influencing Attainment 8 scores and ***confounding (return to this later)*** the apparent relationship we observe
 -   ***What are the practical consequences of overfitting?***
-:::
 
-::: {.column width="40%"}
-```{r}
-ggplot(btn_sub, aes(x = PTFSM6CLA1A, y = ATT8SCR)) +
-  geom_point() +
-  geom_abline(intercept = coef(lm_fit)[1], slope = coef(lm_fit)[2], color = "#8F5289") +
-  geom_segment(aes(xend = PTFSM6CLA1A, yend = predicted),
-               linetype = "dotted", color = "grey50") +
-  annotate("text", x = max(btn_sub$PTFSM6CLA1A, na.rm = TRUE), 
-           y = min(btn_sub$ATT8SCR, na.rm = TRUE), 
-           label = annotation_text, hjust = 1, vjust = -15, size = 4, color = "#4E3C56") +
-  labs(title = "Brighton and Hove Schools - Attainment 8 vs % Disadvantaged Students, 2022-23",
-       x = "% Disadvantaged Students",
-       y = "Average Attainment 8 Score") +
-  xlim(0, max(50)) +
-  ylim(min(30), 65) +
-  theme_minimal()
-```
-:::
-:::::
 
 ## Linear Regression - Overfitting, Outliers and High Leverage Points
 
 -   When we overfit, the model can be overly influenced by ***outliers*** (large residuals) and changes in key ***leverage points*** (points that are far from the mean of the independent variable)
--   What happens to our model if a school improvement plan brings the outlier (Longhill) closer to attainment at Hove Park?
--   Council makes Varndean increase its disadvantaged intake to 30%?
--   And BACA improves its Attainment 8 to the city average following a huge cash injection from its academy trust?
+-   What happens to our model if:
+    -   a school improvement plan brings the outlier (Longhill) closer to attainment at Hove Park?
+    -   Council makes Varndean increase its disadvantaged intake to 30%?
+    -   And BACA improves its Attainment 8 to the city average following a huge cash injection from its academy trust?
 
 ## Linear Regression - Overfitting, Outliers and High Leverage Points
 
@@ -1516,7 +1510,7 @@ check_model(lm_fit,
 ```
 
 -   Issues here too: the residuals are not randomly scattered around zero
--   They are instead displaying ***heteroscdasticity***
+-   They are instead displaying ***heteroscdasticity*** (different variance)
 
 ## Linear Regression - Normality of Residuals?
 
@@ -2052,11 +2046,11 @@ check_model(lm_fit1,
 
 ## Multiple Linear Regression - Independence of Residuals
 
--    Residuals (errors) should not be correlated with each other
--    (auto)correlation (clustering) in the errors = model missing something! 
--    can lead to biased estimates and incorrect conclusions
--    often occurs when a temporal or spatial component to the data
--    or when another important variable is missing or omitted
+-   Residuals (errors) should not be correlated with each other
+-   (auto)correlation (clustering) in the errors = model missing something!
+-   can lead to biased estimates and incorrect conclusions
+-   often occurs when a temporal or spatial component to the data
+-   or when another important variable is missing or omitted
 
 ## Multiple Linear Regression - Spatial or Temporal (auto)Correlation
 
