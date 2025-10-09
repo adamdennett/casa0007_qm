@@ -337,7 +337,7 @@ england_school_2022_23 %>%
   filter(LANAME == "Brighton and Hove") %>% 
   filter(phase_of_education_name == "Secondary") %>% 
   filter(establishment_status_name == "Open") %>% 
-  select(URN, SCHNAME.x, TOWN.x, TOTPUPS, ATT8SCR, OFSTEDRATING, MINORGROUP, PTFSM6CLA1A) |>
+  select(URN, SCHNAME.x, TOWN.x, TOTPUPS, ATT8SCR, OFSTEDRATING, MINORGROUP, PTFSM6CLA1A) %>%
   reactable(theme = casa_reactable_theme(colour = "purple"))
 
 
@@ -607,11 +607,37 @@ ggplot(england_filtered, aes(x = PTFSM6CLA1A)) +
 
 ## Step 1c - Ingredients (selection) {transition="convex-in none-out" transition-speed="fast"}
 
+::::: columns
+::: {.column width="50%"}
 -   The process of exploring and interrogating your data should take much longer than the modelling at the end
 -   The process is iterative - you might well be exploring your data and the theory ***at the same time*** to help you explore, filter, select and prepare for the modelling phase
--   Understanding your 'system' and what the key elements are is vital.
-    -   Sometimes this might come from experience (e.g. I used to be a school teacher so know that 'Special Schools' teach children with complex needs where academic performance is likely to be lower or that if you are at 'college' \[usually post-16\], then likely to be re-taking or studying for a reduced programme of GCSEs))
-    -   more often you will have to carry out your own research to help you understand your system and its key elements
+:::
+
+::: {.column width="50%"}
+```{mermaid}
+flowchart TD
+    A["<img src='images/Data.png'>"] --> B[<img src='images/Book.png'>]
+    B[<img src='images/Book.png'>] --> A["<img src='images/Data.png'>"]
+    
+```
+:::
+:::::
+
+## Step 1c - Ingredients (selection) {transition="convex-in none-out" transition-speed="fast"}
+
+::::: columns
+::: {.column width="50%"}
+-   Understanding your 'system' is vital
+-   What is "in" and what is "out"?
+-   How do you know?
+    -   Experience (e.g. I used to be a school teacher so aware of differences in types of school)
+    -   Research! If you are unfamiliar with the system, do your research
+:::
+
+::: {.column width="50%"}
+[![](images/being_interdisciplinary.jpg){width="50%"}](https://uclpress.co.uk/book/being-interdisciplinary/)
+:::
+:::::
 
 ## Step 1c - Ingredients (selection) {transition="convex-in none-out" transition-speed="fast"}
 
@@ -675,11 +701,8 @@ flowchart TD
     C -->|Scale or Ratio?| E(Pearson Correlation <br/>or Spearman's Rank)
     C -->|Both?| F(Ask Google)
     G --> H(REGRESSION - everything else, <br/>get in the bin)
+    
 ```
-
-::: Footer
-<https://statsandr.com/blog/files/overview-statistical-tests-statsandr.pdf>
-:::
 
 <!-- ## Step 2 - Method {transition="convex-in none-out" transition-speed="fast"} -->
 
@@ -894,9 +917,9 @@ ggplot(btn_sub, aes(x = PTFSM6CLA1A, y = ATT8SCR)) +
   theme_minimal()
 ```
 
--   The fit of the model is represented by the ***coefficient of determination*** or $R^2$ value, which is calculated from the residuals
+-   The fit of the model is represented by the ***coefficient of determination*** or $R^2$ value (0-1), which is calculated from the residuals
 -   It describes how much of the variation in $Y$ (Attainment 8 score) is explained by the variation in $X$ (% Disadvantaged Students) - here 69%
--   The closer to 1, the better the fit of the model
+-   The closer to 1 (100%), the better the fit of the model
 
 ## Linear Regression - R-Squared
 
@@ -954,6 +977,15 @@ ggplot(btn_sub, aes(x = PTFSM6CLA1A, y = ATT8SCR)) +
 -   The regression line itself can be described by an equation with two parameters / coefficients:
     -   The **intercept** - $\beta_0$ - which is the value of $Y$ when $X = 0$
     -   The **slope** - $\beta_1$ - which the change in the value of $Y$ for a 1 unit change in $X$
+    
+## Linear Regression - Slope and Intercept
+
+-   Another way of thinking of your **intercept** is as your *model baseline*. 
+    -   In our case: baseline attainment, controlling for disadvantage.
+-    Higher or lower intercept values for different local authorities relate to higher or lower baseline attainment. 
+-   Another way of thinking about your **slope** is the level of influence your $X$ variable might be having on your $Y$ variable
+    -   Higher value = Steeper Slope = More influence
+    -   Lower value = more horizontal slope = Less influence
 
 ## Linear Regression - Model Estimates
 
@@ -1013,11 +1045,7 @@ $$Y = \beta_0 + \beta_1X_1 + \epsilon$$ $$\hat{Y} = 62.35 + (-0.63 \times X) + \
 :::
 
 ::: {.column width="50%"}
-![](images/Python-logo-notext.svg.png){width="20%"} ![](images/R_logo.svg.png){width="20%"}
-![](images/Stata_logo_med_blue.png){width="20%"}
-![](images/spss-1-logo-png-transparent.png){width="20%"}
-![](images/statsmodels-logo-v2-horizontal.svg){width="20%"}
-![](images/tidy_models.png){width="20%"}
+![](images/Python-logo-notext.svg.png){width="20%"} ![](images/R_logo.svg.png){width="20%"} ![](images/Stata_logo_med_blue.png){width="20%"} ![](images/spss-1-logo-png-transparent.png){width="20%"} ![](images/statsmodels-logo-v2-horizontal.svg){width="20%"} ![](images/tidy_models.png){width="20%"}
 :::
 :::::
 
@@ -1050,7 +1078,7 @@ summary(lm_fit)
 -   The residual errors range from -8.3 (Longhill) to + 4.7 (Varndean)
 -   The residual standard error of 4.087 = predictions for School's Attainment 8 score are off by about 4.1 points
 -   Residual Standard Error (RSE) and $R^2$ are inversely related - A smaller RSE and larger $R^2$ both mean a more precise model
--   The F-Statistic is a ratio of the amount of variance in $Y$ explained by the model to that not. x 17.7 more - statistically significant \<0.005
+-   The F-Statistic is a ratio of the amount of variance in $Y$ explained by the model to that not. x17.7 more - statistically significant \<0.005
 
 ## Linear Regression - Degrees of Freedom
 
@@ -1238,8 +1266,8 @@ ggplot(btn_sub1) +
 ![](images/the_coefs.png)
 
 -   The Estimates ($\beta$)
-    -   **Intercept $\beta_0$** - estimated Attainment 8 value when % Disadvantaged Children in a school is **zero**
-    -   PTFSM6CLA1A (**slope $\beta_1$**) - effect of a one-unit change in the % Disadvantaged Children on Attainment 8 - therefore linked to the units of the independent variable and not directly comparable across different variables if measured on different scales
+    -   **Intercept** $\beta_0$ - estimated Attainment 8 value when % Disadvantaged Children in a school is **zero**
+    -   PTFSM6CLA1A (**slope** $\beta_1$) - effect of a one-unit change in the % Disadvantaged Children on Attainment 8 - therefore linked to the units of the independent variable and not directly comparable across different variables if measured on different scales
 
 ## Linear Regression - Coefficients 2
 
@@ -1274,7 +1302,7 @@ ggplot(btn_sub1) +
 -   The p-values relate to the ***null hypotheses*** that:
     1.  true value of the intercept is **zero** when the independent variable is **zero**. P \<0.001 = \<0.1% probability that 62.3 occured by random chance - It doesn't tell us that when % Disadvantaged is zero, 62.3 will be a correct Attainment 8 score, just real value is unlikely to be zero
     2.  true value of the PTFSM6CLA1A slope (relationship between % Disadvantaged and Attainment 8) is zero. P \< 0.01 = \<1% probability that the relationship observed is by chance. Relationship is likely to be real.
-    
+
 ## Linear Regression - Summary so far
 
 ```{r}
@@ -1303,7 +1331,6 @@ ggplot(btn_sub, aes(x = PTFSM6CLA1A, y = ATT8SCR)) +
 
 3.  A 1% reduction in the number of disadvantaged students in a school appears to be associated with a 0.62 point increase in Attainment 8, and vice versa. **So the council was right? Well, not quite...**
 
-
 ## Linear Regression - Summary so far
 
 4.  The degrees of freedom in the model are small, so model likely to be **over-fitted** and unreliable for generalisation
@@ -1311,7 +1338,6 @@ ggplot(btn_sub, aes(x = PTFSM6CLA1A, y = ATT8SCR)) +
 -   Small numbers of observations (schools in the city) mean that the model is highly sensitive to changes in the data
 -   It's also unclear whether there are any other factors that might be correlated with disadvantaged students that might also be influencing Attainment 8 scores and ***confounding (return to this later)*** the apparent relationship we observe
 -   ***What are the practical consequences of overfitting?***
-
 
 ## Linear Regression - Overfitting, Outliers and High Leverage Points
 
