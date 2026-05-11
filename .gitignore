@@ -7,3 +7,5 @@ casa-slides*
 casa_slides_demo*
 AD_Header.qmd
 demo_files*
+# Claude Code worktrees (never track these)
+.claude/
